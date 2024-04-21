@@ -1,6 +1,6 @@
 ﻿namespace ArtGallery.Entities
 {
-    public partial class ArtWorkMovement
+    public partial class SchoolOfArt
     {
         public int Id { get; set; }
         public int UserId { get; set; }
@@ -10,7 +10,6 @@
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public DateTime? DeletedAt { get; set; }
-
 
         public virtual ArtWork ArtWork { get; set; }
         public virtual Artist Artist { get; set; }

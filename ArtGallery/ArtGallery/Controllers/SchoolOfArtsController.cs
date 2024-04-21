@@ -12,27 +12,27 @@ namespace ArtGallery.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ArtWorkMovementsController : ControllerBase
+    public class SchoolOfArtsController : ControllerBase
     {
         private readonly ArtGalleryApiContext _context;
 
-        public ArtWorkMovementsController(ArtGalleryApiContext context)
+        public SchoolOfArtsController(ArtGalleryApiContext context)
         {
             _context = context;
         }
 
         // GET: api/ArtWorkMovements
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ArtWorkMovement>>> GetArtWorkMovement()
+        public async Task<ActionResult<IEnumerable<SchoolOfArt>>> GetArtWorkMovement()
         {
-            return await _context.ArtWorkMovement.ToListAsync();
+            return await _context.SchoolOfArt.ToListAsync();
         }
 
         // GET: api/ArtWorkMovements/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<ArtWorkMovement>> GetArtWorkMovement(int id)
+        public async Task<ActionResult<SchoolOfArt>> GetArtWorkMovement(int id)
         {
-            var artWorkMovement = await _context.ArtWorkMovement.FindAsync(id);
+            var artWorkMovement = await _context.SchoolOfArt.FindAsync(id);
 
             if (artWorkMovement == null)
             {
@@ -45,7 +45,7 @@ namespace ArtGallery.Controllers
         // PUT: api/ArtWorkMovements/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutArtWorkMovement(int id, ArtWorkMovement artWorkMovement)
+        public async Task<IActionResult> PutArtWorkMovement(int id, SchoolOfArt artWorkMovement)
         {
             if (id != artWorkMovement.Id)
             {
@@ -120,13 +120,13 @@ namespace ArtGallery.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteArtWorkMovement(int id)
         {
-            var artWorkMovement = await _context.ArtWorkMovement.FindAsync(id);
+            var artWorkMovement = await _context.SchoolOfArt.FindAsync(id);
             if (artWorkMovement == null)
             {
                 return NotFound();
             }
 
-            _context.ArtWorkMovement.Remove(artWorkMovement);
+            _context.SchoolOfArt.Remove(artWorkMovement);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -134,7 +134,7 @@ namespace ArtGallery.Controllers
 
         private bool ArtWorkMovementExists(int id)
         {
-            return _context.ArtWorkMovement.Any(e => e.Id == id);
+            return _context.SchoolOfArt.Any(e => e.Id == id);
         }
     }
 }
