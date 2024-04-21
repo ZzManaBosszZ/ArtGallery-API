@@ -3,6 +3,9 @@
     public partial class Artist
     {
         public int Id { get; set; }
+        public string Name { get; set; }
+
+        public string Image {  get; set; }  
         public int ArtWorkId { get; set; }
         public int ArtWorkMovementId { get; set; }
         public string Biography { get; set; }

@@ -18,5 +18,8 @@ namespace ArtGallery.Entities
         public DbSet<ArtGallery.Entities.Auction> Auction { get; set; } = default!;
         public DbSet<ArtGallery.Entities.Favorite> Favorite { get; set; } = default!;
         public DbSet<ArtGallery.Entities.Specialists> Specialists { get; set; } = default!;
+        public DbSet<ArtGallery.Entities.User> Users { get; set; }
+
+     
     }
 }
