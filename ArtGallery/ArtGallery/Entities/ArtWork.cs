@@ -4,8 +4,7 @@
     {
         public int Id { get; set; }
         public int ArtistId { get; set; }
-        public int ArtWorkMovementId { get; set; }
-
+        public int SchoolOfArtId { get; set; }
         public int? AuctionId { get; set; }
         public string Name { get; set; } = null!;
         public string ArtWorkImage { get; set; } = null!;
@@ -26,7 +25,7 @@
         public virtual Artist Artist { get; set; }
         public virtual Auction Auction { get; set; }
         //public virtual ViewingRooms ViewingRooms { get; set; }
-        public virtual ICollection<ArtWorkMovement> ArtWorkMovements { get; set; } = new List<ArtWorkMovement>();
+        public virtual ICollection<SchoolOfArt> SchoolOfArts { get; set; } = new List<SchoolOfArt>();
         public virtual ICollection<GalleryArtWork> GalleryArtWorks { get; set; } = new List<GalleryArtWork>();
     }
 }

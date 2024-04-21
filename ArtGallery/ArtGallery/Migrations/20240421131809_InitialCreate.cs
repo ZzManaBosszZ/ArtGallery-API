@@ -17,8 +17,10 @@ namespace ArtGallery.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Image = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ArtWorkId = table.Column<int>(type: "int", nullable: false),
-                    ArtWorkMovementId = table.Column<int>(type: "int", nullable: false),
+                    SchoolOfArtId = table.Column<int>(type: "int", nullable: false),
                     Biography = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -45,7 +47,7 @@ namespace ArtGallery.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "User",
+                name: "Users",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -64,7 +66,7 @@ namespace ArtGallery.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_User", x => x.Id);
+                    table.PrimaryKey("PK_Users", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -82,9 +84,9 @@ namespace ArtGallery.Migrations
                 {
                     table.PrimaryKey("PK_Auction", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Auction_User_UserId",
+                        name: "FK_Auction_Users_UserId",
                         column: x => x.UserId,
-                        principalTable: "User",
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -105,9 +107,9 @@ namespace ArtGallery.Migrations
                 {
                     table.PrimaryKey("PK_Favorite", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Favorite_User_UserId",
+                        name: "FK_Favorite_Users_UserId",
                         column: x => x.UserId,
-                        principalTable: "User",
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -119,7 +121,7 @@ namespace ArtGallery.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ArtistId = table.Column<int>(type: "int", nullable: false),
-                    ArtWorkMovementId = table.Column<int>(type: "int", nullable: false),
+                    SchoolOfArtId = table.Column<int>(type: "int", nullable: false),
                     AuctionId = table.Column<int>(type: "int", nullable: true),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ArtWorkImage = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -155,37 +157,6 @@ namespace ArtGallery.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ArtWorkMovement",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ArtistId = table.Column<int>(type: "int", nullable: false),
-                    ArtWorkId = table.Column<int>(type: "int", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Slug = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ArtWorkMovement", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ArtWorkMovement_ArtWork_ArtWorkId",
-                        column: x => x.ArtWorkId,
-                        principalTable: "ArtWork",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
-                    table.ForeignKey(
-                        name: "FK_ArtWorkMovement_Artist_ArtistId",
-                        column: x => x.ArtistId,
-                        principalTable: "Artist",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "GalleryArtWork",
                 columns: table => new
                 {
@@ -208,6 +179,38 @@ namespace ArtGallery.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "SchoolOfArt",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    ArtWorkId = table.Column<int>(type: "int", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Slug = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ArtistId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SchoolOfArt", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SchoolOfArt_ArtWork_ArtWorkId",
+                        column: x => x.ArtWorkId,
+                        principalTable: "ArtWork",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey(
+                        name: "FK_SchoolOfArt_Artist_ArtistId",
+                        column: x => x.ArtistId,
+                        principalTable: "Artist",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_ArtWork_ArtistId",
                 table: "ArtWork",
@@ -217,16 +220,6 @@ namespace ArtGallery.Migrations
                 name: "IX_ArtWork_AuctionId",
                 table: "ArtWork",
                 column: "AuctionId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ArtWorkMovement_ArtistId",
-                table: "ArtWorkMovement",
-                column: "ArtistId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ArtWorkMovement_ArtWorkId",
-                table: "ArtWorkMovement",
-                column: "ArtWorkId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Auction_UserId",
@@ -242,19 +235,29 @@ namespace ArtGallery.Migrations
                 name: "IX_GalleryArtWork_ArtWorkId",
                 table: "GalleryArtWork",
                 column: "ArtWorkId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SchoolOfArt_ArtistId",
+                table: "SchoolOfArt",
+                column: "ArtistId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SchoolOfArt_ArtWorkId",
+                table: "SchoolOfArt",
+                column: "ArtWorkId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "ArtWorkMovement");
-
-            migrationBuilder.DropTable(
                 name: "Favorite");
 
             migrationBuilder.DropTable(
                 name: "GalleryArtWork");
+
+            migrationBuilder.DropTable(
+                name: "SchoolOfArt");
 
             migrationBuilder.DropTable(
                 name: "Specialists");
@@ -269,7 +272,7 @@ namespace ArtGallery.Migrations
                 name: "Auction");
 
             migrationBuilder.DropTable(
-                name: "User");
+                name: "Users");
         }
     }
 }

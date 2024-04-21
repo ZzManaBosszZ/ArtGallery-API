@@ -1,6 +1,7 @@
 ﻿using ArtGallery.Entities;
 using ArtGallery.Helper;
 using ArtGallery.Service.Email;
+using ArtGallery.Service.IMG;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,6 +25,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddTransient<IEmailService, EmailService>();
+builder.Services.AddScoped<IImgService, ImgService>();
 // Add services to the container.
 var Key = builder.Configuration["JWT:Key"];
 var KeyBytes = Encoding.UTF8.GetBytes(Key);
@@ -82,15 +84,10 @@ if (app.Environment.IsDevelopment())
 
 // Configure the HTTP request pipeline.
 app.UseHttpsRedirection();
-app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseStaticFiles();
 app.MapControllers();
-var webSocketOptions = new WebSocketOptions
-{
-    KeepAliveInterval = TimeSpan.FromMinutes(2),
-};
+app.UseCors();
 
-app.UseWebSockets(webSocketOptions);
 app.Run();
