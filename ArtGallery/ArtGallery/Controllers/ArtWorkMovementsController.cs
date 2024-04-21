@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ArtGallery.Entities;
+using ArtGallery.Models.GeneralService;
 
 namespace ArtGallery.Controllers
 {
@@ -74,14 +75,46 @@ namespace ArtGallery.Controllers
 
         // POST: api/ArtWorkMovements
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<ArtWorkMovement>> PostArtWorkMovement(ArtWorkMovement artWorkMovement)
-        {
-            _context.ArtWorkMovement.Add(artWorkMovement);
-            await _context.SaveChangesAsync();
+        //[HttpPost("create")]
+        //public async Task<IActionResult> CreateArtWorkMovement([FromBody] ArtWorkMovementDTO model)
+        //{
+        //    try
+        //    {
+        //        var artWorkMovement = new ArtWorkMovement
+        //        {
+        //            UserId = model.UserId,
+        //            ArtWorkId = model.ArtWorkId,
+        //            Name = model.Name,
+        //            Slug = model.Name.ToLower().Replace(" ", "-"),
+        //            CreatedAt = DateTime.Now,
+        //            UpdatedAt = DateTime.Now,
+        //            DeletedAt = null // Không xóa khi tạo mới
+        //        };
 
-            return CreatedAtAction("GetArtWorkMovement", new { id = artWorkMovement.Id }, artWorkMovement);
-        }
+        //        _context.ArtWorkMovement.Add(artWorkMovement);
+        //        await _context.SaveChangesAsync();
+
+        //        return Created($"api/artworkmovements/{artWorkMovement.Id}", new GeneralService
+        //        {
+        //            Success = true,
+        //            StatusCode = 201,
+        //            Message = "ArtWorkMovement created successfully",
+        //            Data = artWorkMovement
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        var response = new GeneralService
+        //        {
+        //            Success = false,
+        //            StatusCode = 400,
+        //            Message = ex.Message,
+        //            Data = null
+        //        };
+
+        //        return BadRequest(response);
+        //    }
+        //}
 
         // DELETE: api/ArtWorkMovements/5
         [HttpDelete("{id}")]

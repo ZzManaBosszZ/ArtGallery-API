@@ -1,4 +1,6 @@
-﻿namespace ArtGallery.Entities
+﻿using System.Collections.Generic;
+
+namespace ArtGallery.Entities
 {
     public partial class User
     {
