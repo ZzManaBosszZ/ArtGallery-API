@@ -54,20 +54,20 @@ namespace ArtGallery.Controllers
                 {
                     var menu = new List<Menu>
                     {
+                        new Menu { Title = "Dashboard", Url = "", Icon = "" },
+                        new Menu { Title = "Artist", Url = "", Icon = "" },
+                        new Menu { Title = "ArtWork", Url = "", Icon = "" },
+                        new Menu { Title = "Event", Url = "", Icon = "" },
                         new Menu { Title = "", Url = "", Icon = "" },
                         new Menu { Title = "", Url = "", Icon = "" },
-                        new Menu { Title = "", Url = "", Icon = "" },
-                        new Menu { Title = "", Url = "", Icon = "" },
-                        new Menu { Title = "", Url = "", Icon = "" },
-                        new Menu { Title = "", Url = "", Icon = "" },
-                        new Menu { Title = "", Url = "", Icon = "" },
-                        new Menu { Title = "", Url = "", Icon = "" },
-                        new Menu { Title = "", Url = "", Icon = "" },
-                        new Menu { Title = "", Url = "", Icon = "" },
-                        new Menu { Title = "", Url = "", Icon = "" },
-                        new Menu { Title = "", Url = "", Icon = "" },
-                        new Menu { Title = "", Url = "", Icon = "" },
-                        
+                        //new Menu { Title = "", Url = "", Icon = "" },
+                        //new Menu { Title = "", Url = "", Icon = "" },
+                        //new Menu { Title = "", Url = "", Icon = "" },
+                        //new Menu { Title = "", Url = "", Icon = "" },
+                        //new Menu { Title = "", Url = "", Icon = "" },
+                        //new Menu { Title = "", Url = "", Icon = "" },
+                        //new Menu { Title = "", Url = "", Icon = "" },
+
                     };
                     return Ok(menu);
                 }
