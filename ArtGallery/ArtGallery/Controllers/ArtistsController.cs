@@ -190,7 +190,7 @@ namespace ArtGallery.Controllers
                     Name = a.Name,
                     Biography = a.Biography,
                     Image = a.Image,
-                    ImagePath = a.Image,
+                   
                     ArtWork = a.ArtWorks.Select(aw => new ArtWorkResponse
                     {
                         Id = aw.Id,
@@ -264,7 +264,6 @@ namespace ArtGallery.Controllers
                     Name = artist.Name,
                     Biography = artist.Biography,
                     Image = artist.Image,
-                    ImagePath = artist.Image,
                     createdAt = artist.CreatedAt,
                     updatedAt = artist.UpdatedAt,
                     deletedAt = artist.DeletedAt,

@@ -12,23 +12,7 @@ namespace ArtGallery.Service.Artist
         {
             _context = context;
         }
-        public async Task<List<ArtistDTO>> GetAllArtistAsync()
-        {
-            List<Entities.Artist> artist = await _context.Artist.Where(m => m.DeletedAt == null).OrderByDescending(m => m.Id).ToListAsync();
-            List<ArtistDTO> result = new List<ArtistDTO>();
-            foreach (Entities.Artist a in artist)
-            {
-                result.Add(new ArtistDTO
-                {
-                    Id = a.Id,
-                   
-                    createdAt = a.CreatedAt,
-                    updatedAt = a.UpdatedAt,
-                    deletedAt = a.DeletedAt,        
-                });
-            }
-            return result;
-        }
+       
 
         public Task<ArtistDTO> GetArtistByIdAsync(int id)
         {
@@ -46,6 +30,11 @@ namespace ArtGallery.Service.Artist
         }
 
         public Task<bool> DeleteArtistAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<ArtistDTO>> GetAllArtistAsync()
         {
             throw new NotImplementedException();
         }
