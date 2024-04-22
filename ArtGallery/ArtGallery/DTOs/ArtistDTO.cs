@@ -1,4 +1,6 @@
 ﻿using ArtGallery.Entities;
+using ArtGallery.Models.ArtWork;
+using ArtGallery.Models.SchoolOfArt;
 
 namespace ArtGallery.DTOs
 {
@@ -11,8 +13,7 @@ namespace ArtGallery.DTOs
         public string Image {  get; set; }
         public string ImagePath { get; set; }
 
-        public List<ArtWork>? ArtWorks { get; set; }
-
-        public List<SchoolOfArt>? SchoolOfArt { get; set; }
+        public List<ArtWorkResponse>? ArtWork { get; set; }
+        public List<SchoolOfArtResponse>? SchoolOfArt { get; set; }
     }
 }

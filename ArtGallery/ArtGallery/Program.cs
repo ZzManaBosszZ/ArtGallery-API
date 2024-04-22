@@ -1,5 +1,6 @@
 ﻿using ArtGallery.Entities;
 using ArtGallery.Helper;
+using ArtGallery.Service.Artist;
 using ArtGallery.Service.Email;
 using ArtGallery.Service.IMG;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -26,6 +27,7 @@ builder.Services.AddCors(options =>
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddScoped<IImgService, ImgService>();
+builder.Services.AddScoped<IArtistService, ArtistService>();
 // Add services to the container.
 var Key = builder.Configuration["JWT:Key"];
 var KeyBytes = Encoding.UTF8.GetBytes(Key);

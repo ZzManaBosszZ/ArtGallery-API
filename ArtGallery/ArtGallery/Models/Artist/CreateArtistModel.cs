@@ -7,8 +7,6 @@ namespace ArtGallery.Models.Artist
         [Required(ErrorMessage = "Name is required")]
         public string Name { get; set; }
 
-        public IFormFile Image { get; set; }
-
         [Required(ErrorMessage = "Biography is required")]
         public string Biography { get; set; }
 
