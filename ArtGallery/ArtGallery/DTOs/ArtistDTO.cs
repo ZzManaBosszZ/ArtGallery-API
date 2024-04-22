@@ -8,11 +8,9 @@ namespace ArtGallery.DTOs
     {
       
         public string Name { get; set; }
-        public string Biography { get; set; }
-        
+        public string Biography { get; set; }   
         public string Image {  get; set; }
-        public string ImagePath { get; set; }
-
+       
         public List<ArtWorkResponse>? ArtWork { get; set; }
         public List<SchoolOfArtResponse>? SchoolOfArt { get; set; }
     }
