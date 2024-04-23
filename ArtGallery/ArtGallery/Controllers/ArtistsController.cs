@@ -28,15 +28,15 @@ namespace ArtGallery.Controllers
         private readonly IImgService _imgService;
         private readonly IArtistService _artistService;
 
-      public ArtistsController(ArtGalleryApiContext context, IImgService imgService, IArtistService artistService)
+        public ArtistsController(ArtGalleryApiContext context, IImgService imgService, IArtistService artistService)
         {
             _context = context;
             _imgService = imgService;
             _artistService = artistService;
 
-            
+
         }
-        
+
 
         [HttpGet]
         public async Task<IActionResult> GetArtistAll(
@@ -80,7 +80,7 @@ namespace ArtGallery.Controllers
                     Name = a.Name,
                     Biography = a.Biography,
                     Image = a.Image,
-                   
+
                     ArtWork = a.ArtWorks.Select(aw => new ArtWorkResponse
                     {
                         Id = aw.Id,
@@ -228,7 +228,7 @@ namespace ArtGallery.Controllers
                     });
                 }
 
-              
+
                 var image = await _imgService.UploadImageAsync(model.ImagePath, "Artist");
                 if (image != null)
                 {
@@ -237,10 +237,10 @@ namespace ArtGallery.Controllers
                     {
                         Name = model.Name,
                         Image = image,
-                        Biography = model.Biography, 
+                        Biography = model.Biography,
                         CreatedAt = DateTime.Now,
                         DeletedAt = DateTime.Now,
-                        UpdatedAt = null,   
+                        UpdatedAt = null,
                     };
 
                     // Thêm nghệ sĩ mới vào cơ sở dữ liệu
@@ -251,14 +251,14 @@ namespace ArtGallery.Controllers
                     return Created($"get-by-id?id={artist.Id}", new ArtistDTO
                     {
                         Id = artist.Id,
-                        Name = artist.Name,  
-                        Image =artist.Image,
+                        Name = artist.Name,
+                        Image = artist.Image,
                         Biography = artist.Biography,
                         createdAt = artist.CreatedAt,
                         updatedAt = artist.UpdatedAt,
                         deletedAt = null,
                     });
- 
+
                 }
                 else
                 {
@@ -293,20 +293,17 @@ namespace ArtGallery.Controllers
             try
             {
                 // Tìm kiếm nghệ sĩ cần chỉnh sửa
-                Artist existingArtist = await _context.Artist.AsNoTracking().FirstOrDefaultAsync(e => e.Id == model.Id);
+                Artist existingArtist = await _context.Artist.FirstOrDefaultAsync(e => e.Id == model.Id);
+
                 if (existingArtist != null)
                 {
-                    Artist artist = new Artist
-                    {
-                        Id = model.Id,
-                        Name = model.Name,
-                        CreatedAt = existingArtist.CreatedAt,
-                        UpdatedAt = DateTime.Now,
-                        DeletedAt = null,
-                    };
-                    if(model.ImagePath != null)
+                    existingArtist.Name = model.Name;
+                    existingArtist.UpdatedAt = DateTime.Now;
+
+                    if (model.ImagePath != null)
                     {
                         string image = await _imgService.UploadImageAsync(model.ImagePath, "Artist");
+
                         if (image == null)
                         {
                             return BadRequest(new GeneralService
@@ -317,21 +314,19 @@ namespace ArtGallery.Controllers
                                 Data = ""
                             });
                         }
-                        artist.Image = image;
+
+                        existingArtist.Image = image;
                     }
-                    else
-                    {
-                        artist.Image = existingArtist.Image;
-                    }
-                    _context.Artist.Update(artist);
+
+                    _context.Artist.Update(existingArtist);
                     await _context.SaveChangesAsync();
 
                     return Ok(new GeneralService
                     {
                         Success = true,
                         StatusCode = 200,
-                        Message = "Edit successfully",
-                        Data = ""
+                        Message = "Artist edited successfully",
+                        Data = existingArtist
                     });
                 }
                 else
@@ -340,7 +335,7 @@ namespace ArtGallery.Controllers
                     {
                         Success = false,
                         StatusCode = 404,
-                        Message = "Not Found",
+                        Message = "Artist not found",
                         Data = ""
                     });
                 }
@@ -358,6 +353,7 @@ namespace ArtGallery.Controllers
                 return BadRequest(response);
             }
         }
+
 
 
         // DELETE: api/Artists/5

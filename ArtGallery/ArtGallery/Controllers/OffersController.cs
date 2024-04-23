@@ -11,47 +11,47 @@ namespace ArtGallery.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuctionsController : ControllerBase
+    public class OffersController : ControllerBase
     {
         private readonly ArtGalleryApiContext _context;
 
-        public AuctionsController(ArtGalleryApiContext context)
+        public OffersController(ArtGalleryApiContext context)
         {
             _context = context;
         }
 
-        // GET: api/Auctions
+        // GET: api/Offers
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Auction>>> GetAuction()
+        public async Task<ActionResult<IEnumerable<Offer>>> GetOffer()
         {
-            return await _context.Auction.ToListAsync();
+            return await _context.Offer.ToListAsync();
         }
 
-        // GET: api/Auctions/5
+        // GET: api/Offers/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Auction>> GetAuction(int id)
+        public async Task<ActionResult<Offer>> GetOffer(int id)
         {
-            var auction = await _context.Auction.FindAsync(id);
+            var offer = await _context.Offer.FindAsync(id);
 
-            if (auction == null)
+            if (offer == null)
             {
                 return NotFound();
             }
 
-            return auction;
+            return offer;
         }
 
-        // PUT: api/Auctions/5
+        // PUT: api/Offers/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutAuction(int id, Auction auction)
+        public async Task<IActionResult> PutOffer(int id, Offer offer)
         {
-            if (id != auction.Id)
+            if (id != offer.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(auction).State = EntityState.Modified;
+            _context.Entry(offer).State = EntityState.Modified;
 
             try
             {
@@ -59,7 +59,7 @@ namespace ArtGallery.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!AuctionExists(id))
+                if (!OfferExists(id))
                 {
                     return NotFound();
                 }
@@ -72,36 +72,36 @@ namespace ArtGallery.Controllers
             return NoContent();
         }
 
-        // POST: api/Auctions
+        // POST: api/Offers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Auction>> PostAuction(Auction auction)
+        public async Task<ActionResult<Offer>> PostOffer(Offer offer)
         {
-            _context.Auction.Add(auction);
+            _context.Offer.Add(offer);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetAuction", new { id = auction.Id }, auction);
+            return CreatedAtAction("GetOffer", new { id = offer.Id }, offer);
         }
 
-        // DELETE: api/Auctions/5
+        // DELETE: api/Offers/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAuction(int id)
+        public async Task<IActionResult> DeleteOffer(int id)
         {
-            var auction = await _context.Auction.FindAsync(id);
-            if (auction == null)
+            var offer = await _context.Offer.FindAsync(id);
+            if (offer == null)
             {
                 return NotFound();
             }
 
-            _context.Auction.Remove(auction);
+            _context.Offer.Remove(offer);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool AuctionExists(int id)
+        private bool OfferExists(int id)
         {
-            return _context.Auction.Any(e => e.Id == id);
+            return _context.Offer.Any(e => e.Id == id);
         }
     }
 }

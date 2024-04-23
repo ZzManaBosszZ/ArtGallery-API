@@ -1,6 +1,6 @@
 ﻿namespace ArtGallery.Entities
 {
-    public partial class Auction
+    public partial class Offer
     {
         public int Id { get; set; }
 

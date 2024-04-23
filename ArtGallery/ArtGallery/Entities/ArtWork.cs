@@ -5,7 +5,7 @@
         public int Id { get; set; }
         public int ArtistId { get; set; }
         public int SchoolOfArtId { get; set; }
-        public int? AuctionId { get; set; }
+        public int? OfferId { get; set; }
         public string Name { get; set; } = null!;
         public string ArtWorkImage { get; set; } = null!;
         public string Medium { get; set; } = null!;
@@ -23,7 +23,7 @@
         public DateTime? UpdatedAt { get; set; }
         public DateTime? DeletedAt { get; set; }
         public virtual Artist Artist { get; set; }
-        public virtual Auction Auction { get; set; }
+        public virtual Offer Auction { get; set; }
         //public virtual ViewingRooms ViewingRooms { get; set; }
         public virtual ICollection<SchoolOfArt> SchoolOfArts { get; set; } = new List<SchoolOfArt>();
         public virtual ICollection<GalleryArtWork> GalleryArtWorks { get; set; } = new List<GalleryArtWork>();

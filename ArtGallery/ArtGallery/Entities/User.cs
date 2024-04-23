@@ -31,6 +31,6 @@ namespace ArtGallery.Entities
         public DateTime? DeletedAt { get; set; }
 
         public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
-        public virtual ICollection<Auction> Auctions { get; set; } = new List<Auction>();
+        public virtual ICollection<Offer> Offers { get; set; } = new List<Offer>();
     }
 }

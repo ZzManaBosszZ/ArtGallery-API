@@ -141,7 +141,7 @@ namespace ArtGallery.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 
         [HttpPut("edit")]
-        public async Task<IActionResult> EditProduct([FromForm] EditArtWorkModel model)
+        public async Task<IActionResult> EditArtWork([FromForm] EditArtWorkModel model)
         {
             if (ModelState.IsValid)
             {
@@ -181,7 +181,7 @@ namespace ArtGallery.Controllers
 
                     if (model.ArtWorkImage != null)
                     {
-                        string imageUrl = await _imgService.UploadImageAsync(model.ArtWorkImage, "products");
+                        string imageUrl = await _imgService.UploadImageAsync(model.ArtWorkImage, "artwork");
 
                         if (imageUrl == null)
                         {
@@ -243,7 +243,7 @@ namespace ArtGallery.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("create")]
         [Authorize(Roles = "Super Admin, Shopping Center Manager Staff")]
-        public async Task<IActionResult> CreateProduct([FromForm] CreateArtWorkModel model)
+        public async Task<IActionResult> CreateArtWork([FromForm] CreateArtWorkModel model)
         {
             if (ModelState.IsValid)
             {
