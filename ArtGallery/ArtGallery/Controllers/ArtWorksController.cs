@@ -181,7 +181,7 @@ namespace ArtGallery.Controllers
 
                     if (model.ArtWorkImage != null)
                     {
-                        string imageUrl = await _imgService.UploadImageAsync(model.ArtWorkImage, "products");
+                        string imageUrl = await _imgService.UploadImageAsync(model.ArtWorkImage, "artwork");
 
                         if (imageUrl == null)
                         {
