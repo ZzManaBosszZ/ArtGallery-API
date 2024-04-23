@@ -37,9 +37,6 @@ namespace ArtGallery.Migrations
                     b.Property<int>("ArtistId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("AuctionId")
-                        .HasColumnType("int");
-
                     b.Property<string>("CertificateOfAuthenticity")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -73,6 +70,9 @@ namespace ArtGallery.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("OfferId")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
@@ -102,7 +102,7 @@ namespace ArtGallery.Migrations
 
                     b.HasIndex("ArtistId");
 
-                    b.HasIndex("AuctionId");
+                    b.HasIndex("OfferId");
 
                     b.ToTable("ArtWork");
                 });
@@ -119,7 +119,6 @@ namespace ArtGallery.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Biography")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("CreatedAt")
@@ -145,33 +144,6 @@ namespace ArtGallery.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Artist");
-                });
-
-            modelBuilder.Entity("ArtGallery.Entities.Auction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ArtWorkId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("StartingPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Auction");
                 });
 
             modelBuilder.Entity("ArtGallery.Entities.Favorite", b =>
@@ -235,6 +207,33 @@ namespace ArtGallery.Migrations
                     b.ToTable("GalleryArtWork");
                 });
 
+            modelBuilder.Entity("ArtGallery.Entities.Offer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArtWorkId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("StartingPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Offer");
+                });
+
             modelBuilder.Entity("ArtGallery.Entities.SchoolOfArt", b =>
                 {
                     b.Property<int>("Id")
@@ -265,9 +264,6 @@ namespace ArtGallery.Migrations
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -361,24 +357,13 @@ namespace ArtGallery.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ArtGallery.Entities.Auction", "Auction")
+                    b.HasOne("ArtGallery.Entities.Offer", "Auction")
                         .WithMany("ArtWorks")
-                        .HasForeignKey("AuctionId");
+                        .HasForeignKey("OfferId");
 
                     b.Navigation("Artist");
 
                     b.Navigation("Auction");
-                });
-
-            modelBuilder.Entity("ArtGallery.Entities.Auction", b =>
-                {
-                    b.HasOne("ArtGallery.Entities.User", "User")
-                        .WithMany("Auctions")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ArtGallery.Entities.Favorite", b =>
@@ -401,6 +386,17 @@ namespace ArtGallery.Migrations
                         .IsRequired();
 
                     b.Navigation("ArtWork");
+                });
+
+            modelBuilder.Entity("ArtGallery.Entities.Offer", b =>
+                {
+                    b.HasOne("ArtGallery.Entities.User", "User")
+                        .WithMany("Offers")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ArtGallery.Entities.SchoolOfArt", b =>
@@ -436,16 +432,16 @@ namespace ArtGallery.Migrations
                     b.Navigation("SchoolOfArts");
                 });
 
-            modelBuilder.Entity("ArtGallery.Entities.Auction", b =>
+            modelBuilder.Entity("ArtGallery.Entities.Offer", b =>
                 {
                     b.Navigation("ArtWorks");
                 });
 
             modelBuilder.Entity("ArtGallery.Entities.User", b =>
                 {
-                    b.Navigation("Auctions");
-
                     b.Navigation("Favorites");
+
+                    b.Navigation("Offers");
                 });
 #pragma warning restore 612, 618
         }

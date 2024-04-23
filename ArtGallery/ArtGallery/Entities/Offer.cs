@@ -8,9 +8,17 @@
 
         public int ArtWorkId { get; set;}
 
-        public decimal StartingPrice { get; set; }
+        public decimal OfferPrice { get; set; }
+
+        //public string PaymentMethod { get; set; } = null!;
 
         public int Status { get; set; }
+
+        public DateTime? CreatedAt { get; set; }
+
+        public DateTime? UpdatedAt { get; set; }
+
+        public DateTime? DeletedAt { get; set; }
 
         public virtual User User { get; set; } = null!;
 

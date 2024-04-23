@@ -39,6 +39,7 @@ namespace ArtGallery.Controllers
 
 
         [HttpGet]
+        [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> GetArtistAll(
         [FromQuery] string search = null,
         [FromQuery] List<int> artWorkIds = null,
@@ -134,6 +135,7 @@ namespace ArtGallery.Controllers
 
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> GetArtistById(int id)
         {
             try
@@ -210,6 +212,7 @@ namespace ArtGallery.Controllers
 
 
         [HttpPost("create")]
+        [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> CreateArtist([FromForm] CreateArtistModel model)
         {
             try
@@ -288,6 +291,7 @@ namespace ArtGallery.Controllers
         }
 
         [HttpPut("edit")]
+        [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> EditArtist([FromForm] EditArtistModel model)
         {
             try
@@ -358,6 +362,7 @@ namespace ArtGallery.Controllers
 
         // DELETE: api/Artists/5
         [HttpDelete("delete")]
+        [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> DeleteArtist(List<int> ids)
         {
             try
