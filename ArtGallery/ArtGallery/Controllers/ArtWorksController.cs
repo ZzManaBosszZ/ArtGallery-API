@@ -6,6 +6,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ArtGallery.Entities;
+using Humanizer.Localisation;
+using ArtGallery.DTOs;
+using ArtGallery.Models.GeneralService;
+using System.Drawing;
+using ArtGallery.Models.ArtWork;
+using ArtGallery.Service.IMG;
+using Microsoft.AspNetCore.Authorization;
+using System.Net.Http.Headers;
 
 namespace ArtGallery.Controllers
 {
@@ -14,94 +22,353 @@ namespace ArtGallery.Controllers
     public class ArtWorksController : ControllerBase
     {
         private readonly ArtGalleryApiContext _context;
+        private readonly IImgService _imgService;
 
-        public ArtWorksController(ArtGalleryApiContext context)
+        public ArtWorksController(ArtGalleryApiContext context ,IImgService imgService)
         {
             _context = context;
+            _imgService = imgService;
         }
 
         // GET: api/ArtWorks
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ArtWork>>> GetArtWork()
+        public async Task<IActionResult> GetAllArtWorks()
         {
-            return await _context.ArtWork.ToListAsync();
+            try
+            {
+                List<ArtWork> genres = await _context.ArtWork.Where(m => m.DeletedAt == null).OrderBy(m => m.Id).ToListAsync();
+                List<ArtWorkDTO> result = new List<ArtWorkDTO>();
+                foreach (ArtWork m in genres)
+                {
+                    result.Add(new ArtWorkDTO
+                    {
+                        Id = m.Id,
+                        Name = m.Name,
+                        ArtWorkImage = m.ArtWorkImage,
+                        Medium = m.Medium,
+                        Materials = m.Materials,
+                        Size = m.Size,
+                        Condition = m.Condition,
+                        Signature = m.Signature,
+                        Rarity = m.Rarity,
+                        CertificateOfAuthenticity = m.CertificateOfAuthenticity,
+                        Frame = m.Frame,
+                        Series = m.Series,
+                        Price = m.Price,
+                        FavoriteCount = m.FavoriteCount,
+                        createdAt = m.CreatedAt,
+                        updatedAt = m.UpdatedAt,
+                        deletedAt = m.DeletedAt,
+                    });
+                }
+                return Ok(result);
+
+            }
+            catch (Exception ex)
+            {
+                var response = new GeneralService
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    Message = ex.Message,
+                    Data = ""
+                };
+
+                return BadRequest(response);
+            }
+
         }
 
         // GET: api/ArtWorks/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<ArtWork>> GetArtWork(int id)
+        public async Task<ActionResult> GetArtWorkById(int id)
         {
-            var artWork = await _context.ArtWork.FindAsync(id);
-
-            if (artWork == null)
-            {
-                return NotFound();
-            }
-
-            return artWork;
-        }
-
-        // PUT: api/ArtWorks/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutArtWork(int id, ArtWork artWork)
-        {
-            if (id != artWork.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(artWork).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ArtWorkExists(id))
+                ArtWork artWork = await _context.ArtWork.FirstOrDefaultAsync(a => a.Id == id && a.DeletedAt == null);
+                if (artWork != null)
                 {
-                    return NotFound();
+                  var ArtWorkDTO = new ArtWorkDTO
+                    {
+
+                        Id = artWork.Id,
+                        Name = artWork.Name,
+                        ArtWorkImage = artWork.ArtWorkImage,
+                        Medium = artWork.Medium,
+                        Materials = artWork.Materials,
+                        Size = artWork.Size,
+                        Condition = artWork.Condition,
+                        Signature = artWork.Signature,
+                        Rarity = artWork.Rarity,
+                        CertificateOfAuthenticity = artWork.CertificateOfAuthenticity,
+                        Frame = artWork.Frame,
+                        Series = artWork.Series,
+                        Price = artWork.Price,
+                        FavoriteCount = artWork.FavoriteCount,
+                        createdAt = artWork.CreatedAt,
+                        updatedAt = artWork.UpdatedAt,
+                        deletedAt = artWork.DeletedAt,
+                    };
+                    ArtWorkDTO.FavoriteCount = await _context.Favorite.Where(f => f.ArtWorkId == artWork.Id).CountAsync();
+                    return Ok(artWork);
                 }
                 else
                 {
-                    throw;
+                    var response = new GeneralService
+                    {
+                        Success = false,
+                        StatusCode = 404,
+                        Message = "Not Found",
+                        Data = ""
+                    };
+
+                    return NotFound(response);
+                };
+            }
+            catch (Exception ex)
+            {
+                var response = new GeneralService
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    Message = ex.Message,
+                    Data = ""
+                };
+                return BadRequest(response);
+            }
+        }
+        // PUT: api/ArtWorks/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
+        [HttpPut("edit")]
+        public async Task<IActionResult> EditProduct([FromForm] EditArtWorkModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    ArtWork existingtArtWork = await _context.ArtWork.AsNoTracking().FirstOrDefaultAsync(e => e.Id == model.Id);
+                    if (existingtArtWork == null)
+                    {
+                        return NotFound(new GeneralService
+                        {
+                            Success = false,
+                            StatusCode = 404,
+                            Message = "Not Found",
+                            Data = ""
+                        });
+                    }
+
+                    ArtWork art = new ArtWork
+                    {
+                        Id = model.Id,
+                        Name = model.Name,
+                        Medium = model.Medium,
+                        Materials = model.Materials,
+                        Size = model.Size,
+                        Condition = model.Condition,
+                        Signature = model.Signature,
+                        Rarity = model.Rarity,
+                        CertificateOfAuthenticity = model.CertificateOfAuthenticity,
+                        Frame = model.Frame,
+                        Series = model.Series,
+                        Price = model.Price,
+                        FavoriteCount = model.FavoriteCount,
+                        CreatedAt = existingtArtWork.CreatedAt,
+                        UpdatedAt = DateTime.Now,
+                        DeletedAt = null
+                    };
+
+                    if (model.ArtWorkImage != null)
+                    {
+                        string imageUrl = await _imgService.UploadImageAsync(model.ArtWorkImage, "products");
+
+                        if (imageUrl == null)
+                        {
+                            return BadRequest(new GeneralService
+                            {
+                                Success = false,
+                                StatusCode = 400,
+                                Message = "Failed to upload avatar.",
+                                Data = ""
+                            });
+                        }
+
+                        art.ArtWorkImage = imageUrl;
+                    }
+                    else
+                    {
+                        art.ArtWorkImage = existingtArtWork.ArtWorkImage;
+                    }
+
+                    _context.ArtWork.Update(art);
+                    await _context.SaveChangesAsync();
+
+                    return Ok(new GeneralService
+                    {
+                        Success = true,
+                        StatusCode = 200,
+                        Message = "Edit successfully",
+                        Data = ""
+                    });
+
+                }
+                catch (Exception ex)
+                {
+                    var response = new GeneralService
+                    {
+                        Success = false,
+                        StatusCode = 400,
+                        Message = ex.Message,
+                        Data = ""
+                    };
+
+                    return BadRequest(response);
                 }
             }
+            var validationErrors = ModelState.Values.SelectMany(v => v.Errors).Select(v => v.ErrorMessage);
 
-            return NoContent();
+            var validationResponse = new GeneralService
+            {
+                Success = false,
+                StatusCode = 400,
+                Message = "Validation errors",
+                Data = string.Join(" | ", validationErrors)
+            };
+
+            return BadRequest(validationResponse);
         }
 
         // POST: api/ArtWorks
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<ArtWork>> PostArtWork(ArtWork artWork)
+        [HttpPost("create")]
+        [Authorize(Roles = "Super Admin, Shopping Center Manager Staff")]
+        public async Task<IActionResult> CreateProduct([FromForm] CreateArtWorkModel model)
         {
-            _context.ArtWork.Add(artWork);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetArtWork", new { id = artWork.Id }, artWork);
-        }
-
-        // DELETE: api/ArtWorks/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteArtWork(int id)
-        {
-            var artWork = await _context.ArtWork.FindAsync(id);
-            if (artWork == null)
+            if (ModelState.IsValid)
             {
-                return NotFound();
+                try
+                {
+                    var imageUrl = await _imgService.UploadImageAsync(model.ArtWorkImage, "artwork");
+
+                    if (imageUrl == null)
+                    {
+                        return BadRequest(new GeneralService
+                        {
+                            Success = false,
+                            StatusCode = 400,
+                            Message = "Please provide a image.",
+                            Data = ""
+                        });
+                    }
+                    ArtWork artWork = new ArtWork
+                    {
+                        Name = model.Name,
+                        ArtWorkImage = imageUrl,
+                        Medium = model.Medium,
+                        Materials = model.Materials,
+                        Size = model.Size,
+                        Condition = model.Condition,
+                        Signature = model.Signature,
+                        Rarity = model.Rarity,
+                        CertificateOfAuthenticity = model.CertificateOfAuthenticity,
+                        Frame = model.Frame,
+                        Series = model.Series,
+                        Price = model.Price,
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now,
+                        DeletedAt = null
+                    };
+                    _context.ArtWork.Add(artWork);
+                    await _context.SaveChangesAsync();
+
+                    return Created($"get-by-id?id={artWork.Id}", new ArtWorkDTO
+                    {
+                        Id = artWork.Id,
+                        Name = artWork.Name,
+                        ArtWorkImage = imageUrl,
+                        Medium = artWork.Medium,
+                        Materials = artWork.Materials,
+                        Size = artWork.Size,
+                        Condition = artWork.Condition,
+                        Signature = artWork.Signature,
+                        Rarity = artWork.Rarity,
+                        CertificateOfAuthenticity = artWork.CertificateOfAuthenticity,
+                        Frame = artWork.Frame,
+                        Series = artWork.Series,
+                        Price = artWork.Price,
+                        createdAt = artWork.CreatedAt,
+                        updatedAt = artWork.UpdatedAt,
+                        deletedAt = artWork.DeletedAt,
+                    });
+                }
+                catch (Exception ex)
+                {
+                    var response = new GeneralService
+                    {
+                        Success = false,
+                        StatusCode = 400,
+                        Message = ex.Message,
+                        Data = ""
+                    };
+
+                    return BadRequest(response);
+                }
             }
+            var validationErrors = ModelState.Values.SelectMany(v => v.Errors).Select(v => v.ErrorMessage);
 
-            _context.ArtWork.Remove(artWork);
-            await _context.SaveChangesAsync();
+            var validationResponse = new GeneralService
+            {
+                Success = false,
+                StatusCode = 400,
+                Message = "Validation errors",
+                Data = string.Join(" | ", validationErrors)
+            };
 
-            return NoContent();
+            return BadRequest(validationResponse);
         }
-
-        private bool ArtWorkExists(int id)
+        // DELETE: api/ArtWorks/5
+        [HttpDelete("delete")]
+        public async Task<IActionResult> DeleteArtist(List<int> ids)
         {
-            return _context.ArtWork.Any(e => e.Id == id);
+            try
+            {
+                foreach (var id in ids)
+                {
+                    ArtWork artist = await _context.ArtWork.FindAsync(id);
+
+                    if (artist != null)
+                    {
+                        artist.DeletedAt = DateTime.Now;
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                var response = new GeneralService
+                {
+                    Success = true,
+                    StatusCode = 200,
+                    Message = "Soft delete successful",
+                    Data = null
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                var response = new GeneralService
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    Message = ex.Message,
+                    Data = ""
+                };
+
+                return BadRequest(response);
+            }
         }
+
+
     }
 }

@@ -7,6 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ArtGallery.Entities;
 using ArtGallery.Models.GeneralService;
+using ArtGallery.DTOs;
+using ArtGallery.Models.ArtWork;
+using ArtGallery.Models.SchoolOfArt;
+using Humanizer.Localisation;
 
 namespace ArtGallery.Controllers
 {
@@ -23,118 +27,241 @@ namespace ArtGallery.Controllers
 
         // GET: api/ArtWorkMovements
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<SchoolOfArt>>> GetArtWorkMovement()
+        public async Task<IActionResult> GetAllSchoolOfArts()
         {
-            return await _context.SchoolOfArt.ToListAsync();
+            try
+            {
+                List<SchoolOfArt> soa = await _context.SchoolOfArt.Where(m => m.DeletedAt == null).OrderBy(m => m.Id).ToListAsync();
+                List<SchoolOfArtDTO> result = new List<SchoolOfArtDTO>();
+
+                foreach (SchoolOfArt m in soa)
+                {
+                    result.Add(new SchoolOfArtDTO
+                    {
+                        Id = m.Id,
+                        Name = m.Name,
+                        createdAt = m.CreatedAt,
+                        updatedAt = m.UpdatedAt,
+                        deletedAt = m.DeletedAt,
+                    });
+                }
+                return Ok(result);
+
+            }
+            catch (Exception ex)
+            {
+                var response = new GeneralService
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    Message = ex.Message,
+                    Data = ""
+                };
+
+                return BadRequest(response);
+            }
+
         }
 
         // GET: api/ArtWorkMovements/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<SchoolOfArt>> GetArtWorkMovement(int id)
+        public async Task<ActionResult> GetAllSchoolOfArtsById(int id)
         {
-            var artWorkMovement = await _context.SchoolOfArt.FindAsync(id);
-
-            if (artWorkMovement == null)
+            try
             {
-                return NotFound();
-            }
+                SchoolOfArt artWork = await _context.SchoolOfArt.FirstOrDefaultAsync(a => a.Id == id && a.DeletedAt == null);
+                if (artWork != null)
+                {
+                   return Ok(new SchoolOfArtDTO
+                    {
+                        Id = artWork.Id,
+                        Name = artWork.Name,
+                        createdAt = artWork.CreatedAt,
+                        updatedAt = artWork.UpdatedAt,
+                        deletedAt = artWork.DeletedAt,
+                    });
+                    
+                }
+                else
+                {
+                    var response = new GeneralService
+                    {
+                        Success = false,
+                        StatusCode = 404,
+                        Message = "Not Found",
+                        Data = ""
+                    };
 
-            return artWorkMovement;
+                    return NotFound(response);
+                };
+            }
+            catch (Exception ex)
+            {
+                var response = new GeneralService
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    Message = ex.Message,
+                    Data = ""
+                };
+                return BadRequest(response);
+            }
         }
 
         // PUT: api/ArtWorkMovements/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutArtWorkMovement(int id, SchoolOfArt artWorkMovement)
+        public async Task<IActionResult> EditArtWork([FromForm]EditSchoolOfArtModel model)
         {
-            if (id != artWorkMovement.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(artWorkMovement).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ArtWorkMovementExists(id))
+                SchoolOfArt schoolOfArt = await _context.SchoolOfArt.AsNoTracking().FirstOrDefaultAsync(m => m.Id == model.Id);
+                if (schoolOfArt != null)
                 {
-                    return NotFound();
+                     SchoolOfArt artWork = new SchoolOfArt
+                     {
+
+                        Id = model.Id,
+                        Name = model.Name,
+                        CreatedAt = model.CreatedAt,
+                        UpdatedAt = model.UpdatedAt,
+                        DeletedAt = null,
+                    };  
+
+                    _context.SchoolOfArt.Update(schoolOfArt);
+                    await _context.SaveChangesAsync();
+
+                    return Ok(new GeneralService
+                    {
+                        Success = true,
+                        StatusCode = 200,
+                        Message = "Edit successfully",
+                        Data = ""
+                    });
                 }
                 else
                 {
-                    throw;
+                    return NotFound(new GeneralService
+                    {
+                        Success = false,
+                        StatusCode = 404,
+                        Message = "Not Found",
+                        Data = ""
+                    });
                 }
             }
+            catch (Exception ex)
+            {
+                var response = new GeneralService
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    Message = ex.Message,
+                    Data = ""
+                };
 
-            return NoContent();
+                return BadRequest(response);
+            }
         }
 
         // POST: api/ArtWorkMovements
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //[HttpPost("create")]
-        //public async Task<IActionResult> CreateArtWorkMovement([FromBody] ArtWorkMovementDTO model)
-        //{
-        //    try
-        //    {
-        //        var artWorkMovement = new ArtWorkMovement
-        //        {
-        //            UserId = model.UserId,
-        //            ArtWorkId = model.ArtWorkId,
-        //            Name = model.Name,
-        //            Slug = model.Name.ToLower().Replace(" ", "-"),
-        //            CreatedAt = DateTime.Now,
-        //            UpdatedAt = DateTime.Now,
-        //            DeletedAt = null // Không xóa khi tạo mới
-        //        };
-
-        //        _context.ArtWorkMovement.Add(artWorkMovement);
-        //        await _context.SaveChangesAsync();
-
-        //        return Created($"api/artworkmovements/{artWorkMovement.Id}", new GeneralService
-        //        {
-        //            Success = true,
-        //            StatusCode = 201,
-        //            Message = "ArtWorkMovement created successfully",
-        //            Data = artWorkMovement
-        //        });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        var response = new GeneralService
-        //        {
-        //            Success = false,
-        //            StatusCode = 400,
-        //            Message = ex.Message,
-        //            Data = null
-        //        };
-
-        //        return BadRequest(response);
-        //    }
-        //}
-
-        // DELETE: api/ArtWorkMovements/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteArtWorkMovement(int id)
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateArtWorkMovement([FromForm] CreateSchoolOfArtModel  model)
         {
-            var artWorkMovement = await _context.SchoolOfArt.FindAsync(id);
-            if (artWorkMovement == null)
+            try
             {
-                return NotFound();
+                bool soa = await _context.SchoolOfArt.AllAsync(s => s.Name.Equals(model.Name));
+
+                if (soa)
+                {
+                    return BadRequest(new GeneralService
+                    {
+                        Success = false,
+                        StatusCode = 400,
+                        Message = "Genre already exists",
+                        Data = ""
+                    });
+                }
+                 SchoolOfArt art = new SchoolOfArt
+                 {
+                    ArtistId = model.ArtistId,
+                    ArtWorkId = model.ArtWorkId,
+                    Name = model.Name,
+                    Slug = model.Name.ToLower().Replace(" ", "-"),
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now,
+                    DeletedAt = null // Không xóa khi tạo mới
+                };
+
+                _context.SchoolOfArt.Add(art);
+                await _context.SaveChangesAsync();
+
+                return Created($"get-by-id?id={art.Id}", new SchoolOfArtDTO
+                {
+                    Name = art.Name,
+                    Slug = art.Name.ToLower().Replace(" ", "-"),
+                    createdAt = DateTime.Now,
+                    updatedAt = DateTime.Now,
+                    deletedAt = null
+                } );
             }
+            catch (Exception ex)
+            {
+                var response = new GeneralService
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    Message = ex.Message,
+                    Data = null
+                };
 
-            _context.SchoolOfArt.Remove(artWorkMovement);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+                return BadRequest(response);
+            }
         }
 
-        private bool ArtWorkMovementExists(int id)
+        [HttpDelete("delete")]
+        // DELETE: api/ArtWorkMovements/5
+        public async Task<IActionResult> Delete(List<int> ids)
         {
-            return _context.SchoolOfArt.Any(e => e.Id == id);
+            try
+            {
+                foreach (var id in ids)
+                {
+                    SchoolOfArt genre = await _context.SchoolOfArt.FindAsync(id);
+
+                    if (genre != null)
+                    {
+                        genre.DeletedAt = DateTime.Now;
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                var response = new GeneralService
+                {
+                    Success = true,
+                    StatusCode = 200,
+                    Message = "Soft delete successful",
+                    Data = ""
+                };
+
+                return Ok(response);
+
+
+            }
+            catch (Exception ex)
+            {
+                var response = new GeneralService
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    Message = ex.Message,
+                    Data = ""
+                };
+
+                return BadRequest(response);
+            }
         }
     }
 }

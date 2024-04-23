@@ -136,7 +136,14 @@ namespace ArtGallery.Controllers
                 _context.Users.Add(data);
                 await _context.SaveChangesAsync();
 
+                var mailRequest = new Mailrequest
+                {
+                    ToEmail = model.email,
+                    Subject = "Confirmation Email",
+                    Body = "Thank you for signing up. Please confirm your email address."
+                };
 
+                await _emailService.SendEmailAsync(mailRequest);
 
 
                 return Created($"get-by-id?id={data.Id}", new UserDTO
@@ -386,8 +393,6 @@ namespace ArtGallery.Controllers
                 });
             }
         }
-
-
 
 
         [HttpPut]
