@@ -1,4 +1,4 @@
-﻿using ArtGallery.Entities;
+using ArtGallery.Entities;
 using ArtGallery.Models.GeneralService;
 using ArtGallery.Models.Users;
 using ArtGallery.Service.IMG;
