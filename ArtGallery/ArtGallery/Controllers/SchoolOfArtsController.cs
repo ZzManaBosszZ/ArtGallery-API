@@ -111,7 +111,7 @@ namespace ArtGallery.Controllers
         // PUT: api/ArtWorkMovements/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> EditArtWork([FromForm]EditSchoolOfArtModel model)
+        public async Task<IActionResult> EditSchoolOfArt([FromForm]EditSchoolOfArtModel model)
         {
             try
             {
@@ -123,8 +123,8 @@ namespace ArtGallery.Controllers
 
                         Id = model.Id,
                         Name = model.Name,
-                        CreatedAt = model.CreatedAt,
-                        UpdatedAt = model.UpdatedAt,
+                        CreatedAt = schoolOfArt.CreatedAt,
+                        UpdatedAt = DateTime.Now,
                         DeletedAt = null,
                     };  
 
@@ -171,7 +171,7 @@ namespace ArtGallery.Controllers
         {
             try
             {
-                bool soa = await _context.SchoolOfArt.AllAsync(s => s.Name.Equals(model.Name));
+                bool soa = await _context.SchoolOfArt.AnyAsync(s => s.Name.Equals(model.Name));
 
                 if (soa)
                 {

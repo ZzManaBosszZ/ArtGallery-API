@@ -23,11 +23,16 @@ builder.Services.AddCors(options =>
         policy.AllowAnyHeader();
     });
 });
-
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddScoped<IImgService, ImgService>();
 builder.Services.AddScoped<IArtistService, ArtistService>();
+
+builder.Services.AddControllers().AddNewtonsoftJson(options =>
+                                   options.SerializerSettings.ReferenceLoopHandling
+                                   = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+                                   );
 // Add services to the container.
 var Key = builder.Configuration["JWT:Key"];
 var KeyBytes = Encoding.UTF8.GetBytes(Key);
@@ -90,6 +95,12 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseStaticFiles();
 app.MapControllers();
+var webSocketOptions = new WebSocketOptions
+{
+    KeepAliveInterval = TimeSpan.FromMinutes(2),
+};
+
+app.UseWebSockets(webSocketOptions);
 app.UseCors();
 
 app.Run();

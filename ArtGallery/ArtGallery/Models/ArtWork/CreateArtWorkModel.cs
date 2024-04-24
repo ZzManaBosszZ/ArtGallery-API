@@ -2,9 +2,9 @@
 {
     public class CreateArtWorkModel
     {
-        public int ArtistId { get; set; }
-        public int SchoolOfArtId { get; set; }
-        public int? AuctionId { get; set; }
+        //public int ArtistId { get; set; }
+        //public int SchoolOfArtId { get; set; }
+        //public int? AuctionId { get; set; }
         public string Name { get; set; }
         public IFormFile ArtWorkImage { get; set; }
         public string Medium { get; set; }
@@ -17,10 +17,6 @@
         public string Frame { get; set; }
         public string Series { get; set; }
         public decimal Price { get; set; }
-        public int FavoriteCount { get; set; }
-
-        public DateTime? CreatedAt { get; set; }
-        public DateTime? UpdatedAt { get; set; }
-        public DateTime? DeletedAt { get; set; }
+        //public int FavoriteCount { get; set; }
     }
 }

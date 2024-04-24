@@ -70,9 +70,9 @@ namespace ArtGallery.Controllers
                 }
                 List<Artist> artist = await query.OrderByDescending(m => m.Id).ToListAsync();
                 List<ArtistDTO> result = new List<ArtistDTO>();
-           
-               foreach(Artist a in artist)
-               {
+
+                foreach (Artist a in artist)
+                {
                     var artistDTO = new ArtistDTO
                     {
                         Id = a.Id,
@@ -87,7 +87,7 @@ namespace ArtGallery.Controllers
                     var schoolOfArts = new List<SchoolOfArtResponse>();
                     var artWorks = new List<ArtWorkResponse>();
 
-                    foreach( var item in a.ArtistSchoolOfArts) 
+                    foreach (var item in a.ArtistSchoolOfArts)
                     {
                         var schoolOfArt = new SchoolOfArtResponse
                         {
@@ -95,9 +95,9 @@ namespace ArtGallery.Controllers
                             Name = item.SchoolOfArt.Name,
                         };
                         schoolOfArts.Add(schoolOfArt);
-                        
+
                     }
-                    foreach( var item in a.ArtistArtWorks) 
+                    foreach (var item in a.ArtistArtWorks)
                     {
                         var artWork = new ArtWorkResponse
                         {
@@ -138,6 +138,8 @@ namespace ArtGallery.Controllers
                 return BadRequest(response);
             }
         }
+
+        
 
         [HttpGet("{id}")]
         //[Authorize(Roles = "Super Admin")]
@@ -247,7 +249,7 @@ namespace ArtGallery.Controllers
                         Image = image,
                         Biography = model.Biography,
                         CreatedAt = DateTime.Now,
-                        DeletedAt = DateTime.Now,
+                        DeletedAt =null,
                         UpdatedAt = null,
                     };
 
