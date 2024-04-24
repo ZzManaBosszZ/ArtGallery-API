@@ -37,6 +37,7 @@ namespace ArtGallery.Controllers
         }
 
         [HttpGet]
+        //[Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> GetArtistAll(
         [FromQuery] string search = null,
         [FromQuery] List<int> artWorkIds = null,
@@ -67,12 +68,11 @@ namespace ArtGallery.Controllers
                 {
                     query = query.Where(a => a.ArtistArtWorks.Any(aw => artWorkIds.Contains(aw.ArtWorkId)));
                 }
-
                 List<Artist> artist = await query.OrderByDescending(m => m.Id).ToListAsync();
                 List<ArtistDTO> result = new List<ArtistDTO>();
-           
-               foreach(Artist a in artist)
-               {
+
+                foreach (Artist a in artist)
+                {
                     var artistDTO = new ArtistDTO
                     {
                         Id = a.Id,
@@ -87,7 +87,7 @@ namespace ArtGallery.Controllers
                     var schoolOfArts = new List<SchoolOfArtResponse>();
                     var artWorks = new List<ArtWorkResponse>();
 
-                    foreach( var item in a.ArtistSchoolOfArts) 
+                    foreach (var item in a.ArtistSchoolOfArts)
                     {
                         var schoolOfArt = new SchoolOfArtResponse
                         {
@@ -95,9 +95,9 @@ namespace ArtGallery.Controllers
                             Name = item.SchoolOfArt.Name,
                         };
                         schoolOfArts.Add(schoolOfArt);
-                        artistDTO.SchoolOfArts = schoolOfArts;
+
                     }
-                    foreach( var item in a.ArtistArtWorks) 
+                    foreach (var item in a.ArtistArtWorks)
                     {
                         var artWork = new ArtWorkResponse
                         {
@@ -139,17 +139,15 @@ namespace ArtGallery.Controllers
             }
         }
 
+
+
         [HttpGet("{id}")]
         //[Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> GetArtistById(int id)
         {
             try
             {
-               Artist a =await _context.Artist
-               .Include(a => a.ArtistArtWorks)
-               .ThenInclude(a=>a.ArtWork).Include(m => m.ArtistSchoolOfArts)
-               .ThenInclude(m => m.SchoolOfArt)
-               .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
+                Artist a = await _context.Artist.Include(a => a.ArtistArtWorks).ThenInclude(a => a.ArtWork).Include(m => m.ArtistSchoolOfArts).ThenInclude(m => m.SchoolOfArt).FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
 
                 if (a != null)
                 {
@@ -203,8 +201,9 @@ namespace ArtGallery.Controllers
                     artistDto.ArtWork = artWorks;
                     return Ok(artWorks);
                 }
-               
-            } catch (Exception ex)
+
+            }
+            catch (Exception ex)
             {
                 var response = new GeneralService
                 {
@@ -219,7 +218,7 @@ namespace ArtGallery.Controllers
             return NotFound();
         }
 
-       
+
 
         [HttpPost("create")]
         //[Authorize(Roles = "Super Admin")]
@@ -251,7 +250,7 @@ namespace ArtGallery.Controllers
                         Image = image,
                         Biography = model.Biography,
                         CreatedAt = DateTime.Now,
-                        DeletedAt = DateTime.Now,
+                        DeletedAt = null,
                         UpdatedAt = null,
                     };
 
@@ -263,27 +262,27 @@ namespace ArtGallery.Controllers
                     {
                         var ArtistSchoolOfArts = new ArtistSchoolOfArt
                         {
-                          ArtistId = a.Id,
-                          SchoolOfArtId = schoolOfArtId,
+                            ArtistId = a.Id,
+                            SchoolOfArtId = schoolOfArtId,
                         };
 
                         _context.ArtistSchoolOfArt.Add(ArtistSchoolOfArts);
-                      
+
                     }
 
 
                     foreach (var artistartworkId in model.ArtWorkIds)
                     {
-                        var ArtistArtWorks= new ArtistArtWork
+                        var ArtistArtWorks = new ArtistArtWork
                         {
-                           ArtistId =a.Id,
-                           ArtWorkId = artistartworkId,
+                            ArtistId = a.Id,
+                            ArtWorkId = artistartworkId,
                         };
 
                         _context.ArtistArtWork.Add(ArtistArtWorks);
-                       
+
                     }
-                   
+
                     await _context.SaveChangesAsync();
                     // Trả về thông báo thành công
                     return Created($"get-by-id?id={a.Id}", new ArtistDTO
