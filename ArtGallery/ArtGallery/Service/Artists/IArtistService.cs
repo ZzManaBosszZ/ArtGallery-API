@@ -1,7 +1,7 @@
 ﻿using ArtGallery.DTOs;
 using ArtGallery.Models.Artist;
 
-namespace ArtGallery.Service.Artist
+namespace ArtGallery.Service.Artists
 {
     public interface IArtistService
     {

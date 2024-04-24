@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ArtGallery.Migrations
 {
     [DbContext(typeof(ArtGalleryApiContext))]
-    [Migration("20240423035359_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20240424090441_update")]
+    partial class update
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -36,9 +36,6 @@ namespace ArtGallery.Migrations
                     b.Property<string>("ArtWorkImage")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ArtistId")
-                        .HasColumnType("int");
 
                     b.Property<string>("CertificateOfAuthenticity")
                         .IsRequired()
@@ -73,18 +70,12 @@ namespace ArtGallery.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("OfferId")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Rarity")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("SchoolOfArtId")
-                        .HasColumnType("int");
 
                     b.Property<string>("Series")
                         .IsRequired()
@@ -103,14 +94,10 @@ namespace ArtGallery.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ArtistId");
-
-                    b.HasIndex("OfferId");
-
                     b.ToTable("ArtWork");
                 });
 
-            modelBuilder.Entity("ArtGallery.Entities.Artist", b =>
+            modelBuilder.Entity("ArtGallery.Entities.ArtWorkSchoolOfArt", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -120,6 +107,26 @@ namespace ArtGallery.Migrations
 
                     b.Property<int>("ArtWorkId")
                         .HasColumnType("int");
+
+                    b.Property<int>("SchoolOfArtId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArtWorkId");
+
+                    b.HasIndex("SchoolOfArtId");
+
+                    b.ToTable("ArtWorkSchoolOfArt");
+                });
+
+            modelBuilder.Entity("ArtGallery.Entities.Artist", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Biography")
                         .HasColumnType("nvarchar(max)");
@@ -138,15 +145,58 @@ namespace ArtGallery.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("SchoolOfArtId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
                     b.ToTable("Artist");
+                });
+
+            modelBuilder.Entity("ArtGallery.Entities.ArtistArtWork", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArtWorkId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ArtistId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArtWorkId");
+
+                    b.HasIndex("ArtistId");
+
+                    b.ToTable("ArtistArtWork");
+                });
+
+            modelBuilder.Entity("ArtGallery.Entities.ArtistSchoolOfArt", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArtistId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SchoolOfArtId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArtistId");
+
+                    b.HasIndex("SchoolOfArtId");
+
+                    b.ToTable("ArtistSchoolOfArt");
                 });
 
             modelBuilder.Entity("ArtGallery.Entities.Favorite", b =>
@@ -179,37 +229,6 @@ namespace ArtGallery.Migrations
                     b.ToTable("Favorite");
                 });
 
-            modelBuilder.Entity("ArtGallery.Entities.GalleryArtWork", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ArtWorkId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ImagePath")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ArtWorkId");
-
-                    b.ToTable("GalleryArtWork");
-                });
-
             modelBuilder.Entity("ArtGallery.Entities.Offer", b =>
                 {
                     b.Property<int>("Id")
@@ -218,14 +237,20 @@ namespace ArtGallery.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ArtWorkId")
-                        .HasColumnType("int");
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
 
-                    b.Property<decimal>("StartingPrice")
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("OfferPrice")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -237,7 +262,7 @@ namespace ArtGallery.Migrations
                     b.ToTable("Offer");
                 });
 
-            modelBuilder.Entity("ArtGallery.Entities.SchoolOfArt", b =>
+            modelBuilder.Entity("ArtGallery.Entities.OfferArtWork", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -248,8 +273,28 @@ namespace ArtGallery.Migrations
                     b.Property<int>("ArtWorkId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ArtistId")
+                    b.Property<int>("OfferId")
                         .HasColumnType("int");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArtWorkId");
+
+                    b.HasIndex("OfferId");
+
+                    b.ToTable("OfferArtWork");
+                });
+
+            modelBuilder.Entity("ArtGallery.Entities.SchoolOfArt", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -261,18 +306,10 @@ namespace ArtGallery.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Slug")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ArtWorkId");
-
-                    b.HasIndex("ArtistId");
 
                     b.ToTable("SchoolOfArt");
                 });
@@ -352,21 +389,61 @@ namespace ArtGallery.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("ArtGallery.Entities.ArtWork", b =>
+            modelBuilder.Entity("ArtGallery.Entities.ArtWorkSchoolOfArt", b =>
                 {
+                    b.HasOne("ArtGallery.Entities.ArtWork", "ArtWork")
+                        .WithMany("ArtWorkSchoolOfArts")
+                        .HasForeignKey("ArtWorkId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ArtGallery.Entities.SchoolOfArt", "SchoolOfArt")
+                        .WithMany()
+                        .HasForeignKey("SchoolOfArtId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ArtWork");
+
+                    b.Navigation("SchoolOfArt");
+                });
+
+            modelBuilder.Entity("ArtGallery.Entities.ArtistArtWork", b =>
+                {
+                    b.HasOne("ArtGallery.Entities.ArtWork", "ArtWork")
+                        .WithMany("ArtistArtWorks")
+                        .HasForeignKey("ArtWorkId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ArtGallery.Entities.Artist", "Artist")
-                        .WithMany("ArtWorks")
+                        .WithMany("ArtistArtWorks")
                         .HasForeignKey("ArtistId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ArtGallery.Entities.Offer", "Auction")
-                        .WithMany("ArtWorks")
-                        .HasForeignKey("OfferId");
+                    b.Navigation("ArtWork");
+
+                    b.Navigation("Artist");
+                });
+
+            modelBuilder.Entity("ArtGallery.Entities.ArtistSchoolOfArt", b =>
+                {
+                    b.HasOne("ArtGallery.Entities.Artist", "Artist")
+                        .WithMany("ArtistSchoolOfArts")
+                        .HasForeignKey("ArtistId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ArtGallery.Entities.SchoolOfArt", "SchoolOfArt")
+                        .WithMany()
+                        .HasForeignKey("SchoolOfArtId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Artist");
 
-                    b.Navigation("Auction");
+                    b.Navigation("SchoolOfArt");
                 });
 
             modelBuilder.Entity("ArtGallery.Entities.Favorite", b =>
@@ -380,17 +457,6 @@ namespace ArtGallery.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("ArtGallery.Entities.GalleryArtWork", b =>
-                {
-                    b.HasOne("ArtGallery.Entities.ArtWork", "ArtWork")
-                        .WithMany("GalleryArtWorks")
-                        .HasForeignKey("ArtWorkId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ArtWork");
-                });
-
             modelBuilder.Entity("ArtGallery.Entities.Offer", b =>
                 {
                     b.HasOne("ArtGallery.Entities.User", "User")
@@ -402,42 +468,42 @@ namespace ArtGallery.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("ArtGallery.Entities.SchoolOfArt", b =>
+            modelBuilder.Entity("ArtGallery.Entities.OfferArtWork", b =>
                 {
                     b.HasOne("ArtGallery.Entities.ArtWork", "ArtWork")
-                        .WithMany("SchoolOfArts")
+                        .WithMany()
                         .HasForeignKey("ArtWorkId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ArtGallery.Entities.Artist", "Artist")
-                        .WithMany("SchoolOfArts")
-                        .HasForeignKey("ArtistId")
+                    b.HasOne("ArtGallery.Entities.Offer", "Offer")
+                        .WithMany("OfferArtWorks")
+                        .HasForeignKey("OfferId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("ArtWork");
 
-                    b.Navigation("Artist");
+                    b.Navigation("Offer");
                 });
 
             modelBuilder.Entity("ArtGallery.Entities.ArtWork", b =>
                 {
-                    b.Navigation("GalleryArtWorks");
+                    b.Navigation("ArtWorkSchoolOfArts");
 
-                    b.Navigation("SchoolOfArts");
+                    b.Navigation("ArtistArtWorks");
                 });
 
             modelBuilder.Entity("ArtGallery.Entities.Artist", b =>
                 {
-                    b.Navigation("ArtWorks");
+                    b.Navigation("ArtistArtWorks");
 
-                    b.Navigation("SchoolOfArts");
+                    b.Navigation("ArtistSchoolOfArts");
                 });
 
             modelBuilder.Entity("ArtGallery.Entities.Offer", b =>
                 {
-                    b.Navigation("ArtWorks");
+                    b.Navigation("OfferArtWorks");
                 });
 
             modelBuilder.Entity("ArtGallery.Entities.User", b =>
