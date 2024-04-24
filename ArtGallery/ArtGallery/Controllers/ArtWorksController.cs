@@ -173,7 +173,6 @@ namespace ArtGallery.Controllers
                         Frame = model.Frame,
                         Series = model.Series,
                         Price = model.Price,
-                        FavoriteCount = model.FavoriteCount,
                         CreatedAt = existingtArtWork.CreatedAt,
                         UpdatedAt = DateTime.Now,
                         DeletedAt = null

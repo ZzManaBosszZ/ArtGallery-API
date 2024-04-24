@@ -123,8 +123,6 @@ namespace ArtGallery.Controllers
 
                         Id = model.Id,
                         Name = model.Name,
-                        CreatedAt = model.CreatedAt,
-                        UpdatedAt = model.UpdatedAt,
                         DeletedAt = null,
                     };  
 

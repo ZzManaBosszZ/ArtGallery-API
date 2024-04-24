@@ -17,10 +17,6 @@ namespace ArtGallery.Models.ArtWork
         public decimal Price { get; set; }
         public int FavoriteCount { get; set; }
 
-        public DateTime? CreatedAt { get; set; }
-        public DateTime? UpdatedAt { get; set; }
-        public DateTime? DeletedAt { get; set; }
-
         [Required]
         public List<int> ArtWorkSchoolOfArtIds { get; set; }
 
