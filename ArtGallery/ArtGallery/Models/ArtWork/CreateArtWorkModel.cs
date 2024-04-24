@@ -1,10 +1,8 @@
-﻿namespace ArtGallery.Models.ArtWork
+﻿using System.ComponentModel.DataAnnotations;
+namespace ArtGallery.Models.ArtWork
 {
     public class CreateArtWorkModel
     {
-        public int ArtistId { get; set; }
-        public int SchoolOfArtId { get; set; }
-        public int? AuctionId { get; set; }
         public string Name { get; set; }
         public IFormFile ArtWorkImage { get; set; }
         public string Medium { get; set; }
@@ -22,5 +20,11 @@
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public DateTime? DeletedAt { get; set; }
+
+        [Required]
+        public List<int> ArtWorkSchoolOfArtIds { get; set; }
+
+        [Required]
+        public List<int> ArtistIds { get; set; }
     }
 }

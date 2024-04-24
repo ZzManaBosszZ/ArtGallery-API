@@ -37,7 +37,6 @@ namespace ArtGallery.Controllers
         }
 
         [HttpGet]
-        //[Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> GetArtistAll(
         [FromQuery] string search = null,
         [FromQuery] List<int> artWorkIds = null,
@@ -68,6 +67,7 @@ namespace ArtGallery.Controllers
                 {
                     query = query.Where(a => a.ArtistArtWorks.Any(aw => artWorkIds.Contains(aw.ArtWorkId)));
                 }
+
                 List<Artist> artist = await query.OrderByDescending(m => m.Id).ToListAsync();
                 List<ArtistDTO> result = new List<ArtistDTO>();
            
@@ -95,7 +95,7 @@ namespace ArtGallery.Controllers
                             Name = item.SchoolOfArt.Name,
                         };
                         schoolOfArts.Add(schoolOfArt);
-                        
+                        artistDTO.SchoolOfArts = schoolOfArts;
                     }
                     foreach( var item in a.ArtistArtWorks) 
                     {
@@ -145,7 +145,11 @@ namespace ArtGallery.Controllers
         {
             try
             {
-               Artist a =await _context.Artist.Include(a => a.ArtistArtWorks).ThenInclude(a=>a.ArtWork).Include(m => m.ArtistSchoolOfArts).ThenInclude(m => m.SchoolOfArt).FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
+               Artist a =await _context.Artist
+               .Include(a => a.ArtistArtWorks)
+               .ThenInclude(a=>a.ArtWork).Include(m => m.ArtistSchoolOfArts)
+               .ThenInclude(m => m.SchoolOfArt)
+               .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
 
                 if (a != null)
                 {
