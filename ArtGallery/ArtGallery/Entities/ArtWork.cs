@@ -3,9 +3,6 @@
     public class ArtWork
     {
         public int Id { get; set; }
-        public int ArtistId { get; set; }
-        public int SchoolOfArtId { get; set; }
-        public int? OfferId { get; set; }
         public string Name { get; set; } = null!;
         public string ArtWorkImage { get; set; } = null!;
         public string Medium { get; set; } = null!;
@@ -22,10 +19,9 @@
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public DateTime? DeletedAt { get; set; }
-        public virtual Artist Artist { get; set; }
-        public virtual Offer Auction { get; set; }
         //public virtual ViewingRooms ViewingRooms { get; set; }
-        public virtual ICollection<SchoolOfArt> SchoolOfArts { get; set; } = new List<SchoolOfArt>();
-        public virtual ICollection<GalleryArtWork> GalleryArtWorks { get; set; } = new List<GalleryArtWork>();
+        public virtual ICollection<ArtWorkSchoolOfArt> ArtWorkSchoolOfArts { get; set; } = new List<ArtWorkSchoolOfArt>();
+        public virtual ICollection<ArtistArtWork> ArtistArtWorks { get; set; } = new List<ArtistArtWork>();
+        //public virtual ICollection<GalleryArtWork> GalleryArtWorks { get; set; } = new List<GalleryArtWork>();
     }
 }

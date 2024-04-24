@@ -185,10 +185,9 @@ namespace ArtGallery.Controllers
                 }
                  SchoolOfArt art = new SchoolOfArt
                  {
-                    ArtistId = model.ArtistId,
-                    ArtWorkId = model.ArtWorkId,
+                    //ArtistId = model.ArtistId,
+                    //ArtWorkId = model.ArtWorkId,
                     Name = model.Name,
-                    Slug = model.Name.ToLower().Replace(" ", "-"),
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now,
                     DeletedAt = null // Không xóa khi tạo mới

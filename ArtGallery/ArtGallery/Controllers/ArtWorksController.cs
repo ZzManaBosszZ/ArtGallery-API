@@ -242,7 +242,7 @@ namespace ArtGallery.Controllers
         // POST: api/ArtWorks
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("create")]
-        [Authorize(Roles = "Super Admin, Shopping Center Manager Staff")]
+        //[Authorize(Roles = "Super Admin, Shopping Center Manager Staff")]
         public async Task<IActionResult> CreateArtWork([FromForm] CreateArtWorkModel model)
         {
             if (ModelState.IsValid)
