@@ -8,6 +8,10 @@ namespace ArtGallery.Entities
 {
     public partial class ArtGalleryApiContext : DbContext 
     {
+
+        public ArtGalleryApiContext() 
+        {
+        }
         public ArtGalleryApiContext(DbContextOptions<ArtGalleryApiContext> options)
            : base(options)
         {
