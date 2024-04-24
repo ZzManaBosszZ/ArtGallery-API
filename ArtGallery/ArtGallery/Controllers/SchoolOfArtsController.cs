@@ -167,7 +167,7 @@ namespace ArtGallery.Controllers
         // POST: api/ArtWorkMovements
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("create")]
-        public async Task<IActionResult> CreateArtWorkMovement([FromForm] CreateSchoolOfArtModel  model)
+        public async Task<IActionResult> CreateSchoolOfArt([FromForm] CreateSchoolOfArtModel  model)
         {
             try
             {
@@ -179,7 +179,7 @@ namespace ArtGallery.Controllers
                     {
                         Success = false,
                         StatusCode = 400,
-                        Message = "Genre already exists",
+                        Message = "School Of Art already exists",
                         Data = ""
                     });
                 }
@@ -199,7 +199,7 @@ namespace ArtGallery.Controllers
                 return Created($"get-by-id?id={art.Id}", new SchoolOfArtDTO
                 {
                     Name = art.Name,
-                    Slug = art.Name.ToLower().Replace(" ", "-"),
+                    //Slug = art.Name.ToLower().Replace(" ", "-"),
                     createdAt = DateTime.Now,
                     updatedAt = DateTime.Now,
                     deletedAt = null
