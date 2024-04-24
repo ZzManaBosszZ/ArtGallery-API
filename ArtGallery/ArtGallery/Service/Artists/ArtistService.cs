@@ -2,8 +2,9 @@
 using ArtGallery.Entities;
 using ArtGallery.Models.Artist;
 using Microsoft.EntityFrameworkCore;
+using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 
-namespace ArtGallery.Service.Artist
+namespace ArtGallery.Service.Artists
 {
     public class ArtistService : IArtistService
     {
@@ -34,9 +35,23 @@ namespace ArtGallery.Service.Artist
             throw new NotImplementedException();
         }
 
-        public Task<List<ArtistDTO>> GetAllArtistAsync()
+        public async Task<List<ArtistDTO>> GetAllArtistAsync()
         {
-            throw new NotImplementedException();
+            List<Artist> artist = await _context.Artist.Where(m => m.DeletedAt == null).OrderByDescending(m => m.Id).ToListAsync();
+            List<ArtistDTO> result = new List<ArtistDTO>();
+            foreach (Artist m in artist)
+            {
+                result.Add(new ArtistDTO
+                {
+                    Id = m.Id,
+                    Name = m.Name,
+                    Image = m.Image,
+                    createdAt = m.CreatedAt,
+                    updatedAt = m.UpdatedAt,
+                    deletedAt = m.DeletedAt,
+                });
+            }
+            return result;
         }
     }
 }

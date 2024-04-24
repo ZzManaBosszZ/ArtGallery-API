@@ -1,4 +1,5 @@
-﻿namespace ArtGallery.Entities
+﻿
+namespace ArtGallery.Entities
 {
     public class ArtistSchoolOfArt
     {

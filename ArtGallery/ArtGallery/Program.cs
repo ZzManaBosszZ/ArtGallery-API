@@ -1,6 +1,6 @@
 ﻿using ArtGallery.Entities;
 using ArtGallery.Helper;
-using ArtGallery.Service.Artist;
+using ArtGallery.Service.Artists;
 using ArtGallery.Service.Email;
 using ArtGallery.Service.IMG;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

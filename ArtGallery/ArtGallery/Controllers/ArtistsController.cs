@@ -12,11 +12,12 @@ using ArtGallery.Models.GeneralService;
 using ArtGallery.Service.IMG;
 using ArtGallery.DTOs;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-using ArtGallery.Service.Artist;
+using ArtGallery.Service.Artists;
 using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 using ArtGallery.Models.ArtWork;
 using ArtGallery.Models.SchoolOfArt;
 using Microsoft.AspNetCore.Http.HttpResults;
+using System.Drawing;
 
 namespace ArtGallery.Controllers
 {
@@ -33,48 +34,46 @@ namespace ArtGallery.Controllers
             _context = context;
             _imgService = imgService;
             _artistService = artistService;
-
-
         }
 
         [HttpGet]
         //[Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> GetArtistAll(
-[FromQuery] string search = null)
-//[FromQuery] List<int> artWorkIds = null,
-//[FromQuery] List<int> schoolOfArtsIds = null)
+        [FromQuery] string search = null,
+        [FromQuery] List<int> artWorkIds = null,
+        [FromQuery] List<int> schoolOfArtsIds = null)
         {
             try
             {
                 // Bắt đầu với truy vấn gốc để lấy danh sách nghệ sĩ
-                //var query = _context.Artist
-                //    .Include(a => a.ArtWorks)
-                //    .Include(a => a.SchoolOfArts)
-                //    .Where(a => a.DeletedAt == null);
+                var query = _context.Artist
+                    .Include(a => a.ArtistSchoolOfArts).ThenInclude(a => a.SchoolOfArt)
+                    .Include(a => a.ArtistArtWorks).ThenInclude(a => a.ArtWork)
+                    .Where(a => a.DeletedAt == null);
 
-                //// Áp dụng bộ lọc tìm kiếm
-                //if (!string.IsNullOrEmpty(search))
-                //{
-                //    query = query.Where(a => a.Name.Contains(search));
-                //}
-
-                //// Áp dụng bộ lọc SchoolOfArtIds
-                //if (schoolOfArtsIds != null && schoolOfArtsIds.Any())
-                //{
-                //    query = query.Where(a => a.SchoolOfArts.Any(soa => schoolOfArtsIds.Contains(soa.Id)));
-                //}
-
-                //// Áp dụng bộ lọc ArtWorkIds
-                //if (artWorkIds != null && artWorkIds.Any())
-                //{
-                //    query = query.Where(a => a.ArtWorks.Any(aw => artWorkIds.Contains(aw.Id)));
-                //}
-                List<Artist> artists = await _context.Artist.Where(m => m.DeletedAt == null).OrderBy(m => m.Id).ToListAsync();
-                //List<Artist> artists = await _context.OrderByDescending(a => a.Id).ToListAsync();
-                List<ArtistDTO> result = new List<ArtistDTO>();
-                foreach (Artist a in artists)
+                // Áp dụng bộ lọc tìm kiếm
+                if (!string.IsNullOrEmpty(search))
                 {
-                    var artistDto = new ArtistDTO
+                    query = query.Where(a => a.Name.Contains(search));
+                }
+
+                // Áp dụng bộ lọc SchoolOfArtIds
+                if (schoolOfArtsIds != null && schoolOfArtsIds.Any())
+                {
+                    query = query.Where(a => a.ArtistSchoolOfArts.Any(a1 => schoolOfArtsIds.Contains(a1.SchoolOfArtId)));
+                }
+
+                // Áp dụng bộ lọc ArtWorkIds
+                if (artWorkIds != null && artWorkIds.Any())
+                {
+                    query = query.Where(a => a.ArtistArtWorks.Any(aw => artWorkIds.Contains(aw.ArtWorkId)));
+                }
+                List<Artist> artist = await query.OrderByDescending(m => m.Id).ToListAsync();
+                List<ArtistDTO> result = new List<ArtistDTO>();
+           
+               foreach(Artist a in artist)
+               {
+                    var artistDTO = new ArtistDTO
                     {
                         Id = a.Id,
                         Name = a.Name,
@@ -84,10 +83,47 @@ namespace ArtGallery.Controllers
                         updatedAt = a.UpdatedAt,
                         deletedAt = a.DeletedAt,
                     };
-                    result.Add(artistDto);
-                }
-                return Ok(result);
 
+                    var schoolOfArts = new List<SchoolOfArtResponse>();
+                    var artWorks = new List<ArtWorkResponse>();
+
+                    foreach( var item in a.ArtistSchoolOfArts) 
+                    {
+                        var schoolOfArt = new SchoolOfArtResponse
+                        {
+                            Id = item.Id,
+                            Name = item.SchoolOfArt.Name,
+                        };
+                        schoolOfArts.Add(schoolOfArt);
+                        
+                    }
+                    foreach( var item in a.ArtistArtWorks) 
+                    {
+                        var artWork = new ArtWorkResponse
+                        {
+                            Id = item.Id,
+                            Name = item.ArtWork.Name,
+                            ArtWorkImage = item.ArtWork.ArtWorkImage,
+                            Medium = item.ArtWork.Medium,
+                            Materials = item.ArtWork.Materials,
+                            Size = item.ArtWork.Size,
+                            Condition = item.ArtWork.Condition,
+                            Signature = item.ArtWork.Signature,
+                            Rarity = item.ArtWork.Rarity,
+                            CertificateOfAuthenticity = item.ArtWork.CertificateOfAuthenticity,
+                            Frame = item.ArtWork.Frame,
+                            Series = item.ArtWork.Series,
+                            Price = item.ArtWork.Price,
+                            FavoriteCount = item.ArtWork.FavoriteCount,
+
+                        };
+                        artWorks.Add(artWork);
+                        artistDTO.ArtWork = artWorks;
+                    }
+                    result.Add(artistDTO);
+                }
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -103,164 +139,68 @@ namespace ArtGallery.Controllers
             }
         }
 
-
-        //[HttpGet]
-        ////[Authorize(Roles = "Super Admin")]
-        //public async Task<IActionResult> GetArtistAll(
-        //[FromQuery] string search = null)
-        ////[FromQuery] List<int> artWorkIds = null,
-        ////[FromQuery] List<int> schoolOfArtsIds = null)
-        //{
-        //    try
-        //    {
-        //        // Bắt đầu với truy vấn gốc để lấy danh sách nghệ sĩ
-        //        var query = _context.Artist
-        //            .Include(a => a.ArtWorks)
-        //            .Include(a => a.SchoolOfArts)
-        //            .Where(a => a.DeletedAt == null);
-
-        //        // Áp dụng bộ lọc tìm kiếm
-        //        if (!string.IsNullOrEmpty(search))
-        //        {
-        //            query = query.Where(a => a.Name.Contains(search));
-        //        }
-
-        //        //// Áp dụng bộ lọc SchoolOfArtIds
-        //        //if (schoolOfArtsIds != null && schoolOfArtsIds.Any())
-        //        //{
-        //        //    query = query.Where(a => a.SchoolOfArts.Any(soa => schoolOfArtsIds.Contains(soa.Id)));
-        //        //}
-
-        //        //// Áp dụng bộ lọc ArtWorkIds
-        //        //if (artWorkIds != null && artWorkIds.Any())
-        //        //{
-        //        //    query = query.Where(a => a.ArtWorks.Any(aw => artWorkIds.Contains(aw.Id)));
-        //        //}
-
-        //        // Lấy danh sách nghệ sĩ từ cơ sở dữ liệu
-        //        var artists = await query.OrderByDescending(a => a.Id).ToListAsync();
-
-        //        // Tạo danh sách kết quả để trả về
-        //        var result = artists.Select(a => new ArtistDTO
-        //        {
-        //            Id = a.Id,
-        //            Name = a.Name,
-        //            Biography = a.Biography,
-        //            Image = a.Image,
-
-        //            ArtWork = a.ArtWorks.Select(aw => new ArtWorkResponse
-        //            {
-        //                Id = aw.Id,
-        //                Name = aw.Name,
-        //                ArtWorkImage = aw.ArtWorkImage,
-        //                Medium = aw.Medium,
-        //                Materials = aw.Materials,
-        //                Size = aw.Size,
-        //                Condition = aw.Condition,
-        //                Signature = aw.Signature,
-        //                Rarity = aw.Rarity,
-        //                CertificateOfAuthenticity = aw.CertificateOfAuthenticity,
-        //                Frame = aw.Frame,
-        //                Series = aw.Series,
-        //                Price = aw.Price,
-        //                FavoriteCount = aw.FavoriteCount,
-        //                CreatedAt = aw.CreatedAt,
-        //                UpdatedAt = aw.UpdatedAt,
-        //                DeletedAt = aw.DeletedAt
-        //            }).ToList(),
-
-        //            SchoolOfArt = a.SchoolOfArts.Select(soa => new SchoolOfArtResponse
-        //            {
-        //                Id = soa.Id,
-        //                Name = soa.Name,
-        //                ArtistId = soa.ArtistId,
-        //                ArtWorkId = soa.ArtWorkId,
-        //                CreatedAt = soa.CreatedAt,
-        //                UpdatedAt = soa.UpdatedAt,
-        //                DeletedAt = soa.DeletedAt
-        //            }).ToList()
-        //        }).ToList();
-
-        //        return Ok(result);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        var response = new GeneralService
-        //        {
-        //            Success = false,
-        //            StatusCode = 400,
-        //            Message = ex.Message,
-        //            Data = ""
-        //        };
-
-        //        return BadRequest(response);
-        //    }
-        //}
-
-
-
         [HttpGet("{id}")]
-        [Authorize(Roles = "Super Admin")]
+        //[Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> GetArtistById(int id)
         {
             try
             {
-                var artist = await _context.Artist
-                    .Include(a => a.ArtWorks)
-                    .Include(a => a.SchoolOfArts)
-                    .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
+               Artist a =await _context.Artist.Include(a => a.ArtistArtWorks).ThenInclude(a=>a.ArtWork).Include(m => m.ArtistSchoolOfArts).ThenInclude(m => m.SchoolOfArt).FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
 
-                if (artist == null)
+                if (a != null)
                 {
-                    return NotFound();
+                    var artistDto = new ArtistDTO
+                    {
+                        Id = a.Id,
+                        Name = a.Name,
+                        Biography = a.Biography,
+                        Image = a.Image,
+                        createdAt = a.CreatedAt,
+                        updatedAt = a.UpdatedAt,
+                        deletedAt = a.DeletedAt,
+                    };
+
+                    var schoolOfArts = new List<SchoolOfArtResponse>();
+                    var artWorks = new List<ArtWorkResponse>();
+
+                    foreach (var item in a.ArtistSchoolOfArts)
+                    {
+                        var schoolOfArt = new SchoolOfArtResponse
+                        {
+                            Id = item.Id,
+                            Name = item.SchoolOfArt.Name,
+                        };
+                        schoolOfArts.Add(schoolOfArt);
+                    }
+                    artistDto.SchoolOfArts = schoolOfArts;
+
+                    foreach (var item in a.ArtistArtWorks)
+                    {
+                        var artWork = new ArtWorkResponse
+                        {
+                            Id = item.Id,
+                            Name = item.ArtWork.Name,
+                            ArtWorkImage = item.ArtWork.ArtWorkImage,
+                            Medium = item.ArtWork.Medium,
+                            Materials = item.ArtWork.Materials,
+                            Size = item.ArtWork.Size,
+                            Condition = item.ArtWork.Condition,
+                            Signature = item.ArtWork.Signature,
+                            Rarity = item.ArtWork.Rarity,
+                            CertificateOfAuthenticity = item.ArtWork.CertificateOfAuthenticity,
+                            Frame = item.ArtWork.Frame,
+                            Series = item.ArtWork.Series,
+                            Price = item.ArtWork.Price,
+                            FavoriteCount = item.ArtWork.FavoriteCount,
+
+                        };
+                        artWorks.Add(artWork);
+                    }
+                    artistDto.ArtWork = artWorks;
+                    return Ok(artWorks);
                 }
-
-                var artistDto = new ArtistDTO
-                {
-                    Id = artist.Id,
-                    Name = artist.Name,
-                    Biography = artist.Biography,
-                    Image = artist.Image,
-                    createdAt = artist.CreatedAt,
-                    updatedAt = artist.UpdatedAt,
-                    deletedAt = artist.DeletedAt,
-
-                    ArtWork = artist.ArtWorks.Select(aw => new ArtWorkResponse
-                    {
-                        Id = aw.Id,
-                        Name = aw.Name,
-                        ArtWorkImage = aw.ArtWorkImage,
-                        Medium = aw.Medium,
-                        Materials = aw.Materials,
-                        Size = aw.Size,
-                        Condition = aw.Condition,
-                        Signature = aw.Signature,
-                        Rarity = aw.Rarity,
-                        CertificateOfAuthenticity = aw.CertificateOfAuthenticity,
-                        Frame = aw.Frame,
-                        Series = aw.Series,
-                        Price = aw.Price,
-                        FavoriteCount = aw.FavoriteCount,
-                        CreatedAt = aw.CreatedAt,
-                        UpdatedAt = aw.UpdatedAt,
-                        DeletedAt = aw.DeletedAt
-                    }).ToList(),
-
-                    SchoolOfArt = artist.SchoolOfArts.Select(soa => new SchoolOfArtResponse
-                    {
-                        Id = soa.Id,
-                        Name = soa.Name,
-                        ArtistId = soa.ArtistId,
-                        ArtWorkId = soa.ArtWorkId,
-                        CreatedAt = soa.CreatedAt,
-                        UpdatedAt = soa.UpdatedAt,
-                        DeletedAt = soa.DeletedAt
-                    }).ToList()
-                };
-
-                return Ok(artistDto);
-            }
-            catch (Exception ex)
+               
+            } catch (Exception ex)
             {
                 var response = new GeneralService
                 {
@@ -272,8 +212,10 @@ namespace ArtGallery.Controllers
 
                 return StatusCode(500, response);
             }
+            return NotFound();
         }
 
+       
 
         [HttpPost("create")]
         //[Authorize(Roles = "Super Admin")]
@@ -295,12 +237,11 @@ namespace ArtGallery.Controllers
                     });
                 }
 
-
                 var image = await _imgService.UploadImageAsync(model.ImagePath, "Artist");
                 if (image != null)
                 {
                     // Tạo một đối tượng Artist từ dữ liệu trong model và ảnh đã tải lên
-                    Artist artist = new Artist
+                    Artist a = new Artist
                     {
                         Name = model.Name,
                         Image = image,
@@ -310,22 +251,48 @@ namespace ArtGallery.Controllers
                         UpdatedAt = null,
                     };
 
-                    // Thêm nghệ sĩ mới vào cơ sở dữ liệu
-                    _context.Artist.Add(artist);
+                    _context.Artist.Add(a);
                     await _context.SaveChangesAsync();
 
-                    // Trả về thông báo thành công
-                    return Created($"get-by-id?id={artist.Id}", new ArtistDTO
-                    {
-                        Id = artist.Id,
-                        Name = artist.Name,
-                        Image = artist.Image,
-                        Biography = artist.Biography,
-                        createdAt = artist.CreatedAt,
-                        updatedAt = artist.UpdatedAt,
-                        deletedAt = null,
-                    });
 
+                    foreach (var schoolOfArtId in model.SchoolOfArtIds)
+                    {
+                        var ArtistSchoolOfArts = new ArtistSchoolOfArt
+                        {
+                          ArtistId = a.Id,
+                          SchoolOfArtId = schoolOfArtId,
+                        };
+
+                        _context.ArtistSchoolOfArt.Add(ArtistSchoolOfArts);
+                      
+                    }
+
+
+                    foreach (var artistartworkId in model.ArtWorkIds)
+                    {
+                        var ArtistArtWorks= new ArtistArtWork
+                        {
+                           ArtistId =a.Id,
+                           ArtWorkId = artistartworkId,
+                        };
+
+                        _context.ArtistArtWork.Add(ArtistArtWorks);
+                       
+                    }
+                   
+                    await _context.SaveChangesAsync();
+                    // Trả về thông báo thành công
+                    return Created($"get-by-id?id={a.Id}", new ArtistDTO
+                    {
+                        Id = a.Id,
+                        Name = a.Name,
+                        Image = a.Image,
+                        Biography = a.Biography,
+                        createdAt = a.CreatedAt,
+                        updatedAt = a.UpdatedAt,
+                        deletedAt = a.DeletedAt,
+
+                    });
                 }
                 else
                 {
@@ -355,19 +322,24 @@ namespace ArtGallery.Controllers
         }
 
         [HttpPut("edit")]
-        [Authorize(Roles = "Super Admin")]
+        //[Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> EditArtist([FromForm] EditArtistModel model)
         {
             try
             {
                 // Tìm kiếm nghệ sĩ cần chỉnh sửa
-                Artist existingArtist = await _context.Artist.FirstOrDefaultAsync(e => e.Id == model.Id);
+                Artist existingArtist = await _context.Artist.AsNoTracking().FirstOrDefaultAsync(e => e.Id == model.Id);
 
                 if (existingArtist != null)
                 {
-                    existingArtist.Name = model.Name;
-                    existingArtist.UpdatedAt = DateTime.Now;
-
+                    Artist artist = new Artist
+                    {
+                        Id = model.Id,
+                        Name = model.Name,
+                        CreatedAt = existingArtist.CreatedAt,
+                        UpdatedAt = DateTime.Now,
+                        DeletedAt = null,
+                    };
                     if (model.ImagePath != null)
                     {
                         string image = await _imgService.UploadImageAsync(model.ImagePath, "Artist");
@@ -384,6 +356,10 @@ namespace ArtGallery.Controllers
                         }
 
                         existingArtist.Image = image;
+                    }
+                    else
+                    {
+                        artist.Image = existingArtist.Image;
                     }
 
                     _context.Artist.Update(existingArtist);
