@@ -6,8 +6,6 @@
 
         public int UserId { get; set; }
 
-        public int ArtWorkId { get; set;}
-
         public decimal OfferPrice { get; set; }
 
         //public string PaymentMethod { get; set; } = null!;
@@ -22,6 +20,7 @@
 
         public virtual User User { get; set; } = null!;
 
-        public virtual ICollection<ArtWork> ArtWorks { get; set; } = new List<ArtWork>();
+
+        public virtual ICollection<OfferArtWork> OfferArtWorks { get; set; } = new List<OfferArtWork>();
     }
 }
