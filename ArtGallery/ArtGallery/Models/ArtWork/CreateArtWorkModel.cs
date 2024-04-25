@@ -16,6 +16,8 @@ namespace ArtGallery.Models.ArtWork
         public string Frame { get; set; }
         public string Series { get; set; }
         public decimal Price { get; set; }
-        
+
+        [Required]
+        public List<int> SchoolOfArtIds { get; set; }
     }
 }

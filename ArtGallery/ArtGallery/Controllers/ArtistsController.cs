@@ -39,9 +39,9 @@ namespace ArtGallery.Controllers
         [HttpGet]
         //[Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> GetArtistAll(
-        [FromQuery] string search = null,
-        [FromQuery] List<int> artWorkIds = null,
-        [FromQuery] List<int> schoolOfArtsIds = null)
+[FromQuery] string search = null,
+[FromQuery] List<int> artWorkIds = null,
+[FromQuery] List<int> schoolOfArtsIds = null)
         {
             try
             {
@@ -95,8 +95,8 @@ namespace ArtGallery.Controllers
                             Name = item.SchoolOfArt.Name,
                         };
                         schoolOfArts.Add(schoolOfArt);
-
                     }
+                    artistDTO.SchoolOfArts = schoolOfArts;
                     foreach (var item in a.ArtistArtWorks)
                     {
                         var artWork = new ArtWorkResponse
@@ -140,13 +140,17 @@ namespace ArtGallery.Controllers
         }
 
 
+
         [HttpGet("{id}")]
         //[Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> GetArtistById(int id)
         {
             try
             {
-                Artist a = await _context.Artist.Include(a => a.ArtistArtWorks).ThenInclude(a => a.ArtWork).Include(m => m.ArtistSchoolOfArts).ThenInclude(m => m.SchoolOfArt).FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
+                Artist a = await _context.Artist
+                    .Include(a => a.ArtistArtWorks).ThenInclude(a => a.ArtWork)
+                    .Include(m => m.ArtistSchoolOfArts).ThenInclude(m => m.SchoolOfArt)
+                    .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
 
                 if (a != null)
                 {
@@ -198,7 +202,7 @@ namespace ArtGallery.Controllers
                         artWorks.Add(artWork);
                     }
                     artistDto.ArtWork = artWorks;
-                    return Ok(artWorks);
+                    return Ok(artistDto);
                 }
 
             }
@@ -249,7 +253,7 @@ namespace ArtGallery.Controllers
                         Image = image,
                         Biography = model.Biography,
                         CreatedAt = DateTime.Now,
-                        DeletedAt =null,
+                        DeletedAt = null,
                         UpdatedAt = null,
                     };
 
