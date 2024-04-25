@@ -36,8 +36,8 @@ namespace ArtGallery.Controllers
         // GET: api/ArtWorks
         [HttpGet]
         public async Task<IActionResult> GetAllArtWorks(
-[FromQuery] string search = null,
-[FromQuery] List<int> schoolOfArtsIds = null
+        [FromQuery] string search = null,
+        [FromQuery] List<int> schoolOfArtsIds = null
 )
         {
             try
@@ -92,7 +92,7 @@ namespace ArtGallery.Controllers
                         schoolOfArts.Add(schoolOfArt);
 
                     }
-                    artworkDTO.SchoolOfArts=schoolOfArts;
+                    artworkDTO.SchoolOfArts = schoolOfArts;
                     result.Add(artworkDTO);
                 }
                 return Ok(result);
@@ -119,13 +119,15 @@ namespace ArtGallery.Controllers
         {
             try
             {
-                ArtWork artWork = await _context.ArtWork.Include(a => a.ArtWorkSchoolOfArts).ThenInclude(a => a.SchoolOfArt).FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
+                var artWork = await _context.ArtWork
+     .Include(a => a.ArtWorkSchoolOfArts)
+         .ThenInclude(a => a.SchoolOfArt)
+     .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
 
                 if (artWork != null)
                 {
-                    var ArtWorkDTO = new ArtWorkDTO
+                    var artWorkDto = new ArtWorkDTO
                     {
-
                         Id = artWork.Id,
                         Name = artWork.Name,
                         ArtWorkImage = artWork.ArtWorkImage,
@@ -141,23 +143,23 @@ namespace ArtGallery.Controllers
                         Price = artWork.Price,
                         FavoriteCount = artWork.FavoriteCount,
                         createdAt = artWork.CreatedAt,
-                        updatedAt = artWork.UpdatedAt,
-                        deletedAt = artWork.DeletedAt,
-                    };
-                    ArtWorkDTO.FavoriteCount = await _context.Favorite.Where(f => f.ArtWorkId == artWork.Id).CountAsync();
-                    var schoolOfArts = new List<SchoolOfArtResponse>();
 
+                    };
+
+                    var schoolOfArts = new List<SchoolOfArtResponse>();
                     foreach (var item in artWork.ArtWorkSchoolOfArts)
                     {
-                        var schoolOfArt = new SchoolOfArtResponse
+                        var schoolOfArtResponse = new SchoolOfArtResponse
                         {
-                            Id = item.Id,
+                            Id = item.SchoolOfArt.Id,
                             Name = item.SchoolOfArt.Name,
+
                         };
-                        schoolOfArts.Add(schoolOfArt);
+                        schoolOfArts.Add(schoolOfArtResponse);
                     }
-                    ArtWorkDTO.SchoolOfArts = schoolOfArts;
-                    return Ok(artWork);
+                    artWorkDto.SchoolOfArts = schoolOfArts;
+
+                    return Ok(artWorkDto);
                 }
                 else
                 {
