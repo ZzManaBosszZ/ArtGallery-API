@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -111,7 +111,7 @@ namespace ArtGallery.Controllers
         // PUT: api/ArtWorkMovements/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> EditArtWork([FromForm]EditSchoolOfArtModel model)
+        public async Task<IActionResult> EditSchoolOfArt([FromForm]EditSchoolOfArtModel model)
         {
             try
             {
@@ -123,6 +123,8 @@ namespace ArtGallery.Controllers
 
                         Id = model.Id,
                         Name = model.Name,
+                        CreatedAt = schoolOfArt.CreatedAt,
+                        UpdatedAt = DateTime.Now,
                         DeletedAt = null,
                     };  
 

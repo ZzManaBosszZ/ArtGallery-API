@@ -1,4 +1,6 @@
-﻿namespace ArtGallery.DTOs
+﻿using ArtGallery.Models.SchoolOfArt;
+
+namespace ArtGallery.DTOs
 {
     public class ArtWorkDTO : AbstractDTO<ArtWorkDTO>
     {
@@ -15,5 +17,6 @@
         public string Series { get; set; } = null!;
         public decimal Price { get; set; }
         public int FavoriteCount { get; set; }
+        public List<SchoolOfArtResponse>? SchoolOfArts { get; set; }
     }
 }

@@ -1,8 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 namespace ArtGallery.Models.ArtWork
 {
     public class CreateArtWorkModel
     {
+
         public string Name { get; set; }
         public IFormFile ArtWorkImage { get; set; }
         public string Medium { get; set; }
@@ -15,12 +16,8 @@ namespace ArtGallery.Models.ArtWork
         public string Frame { get; set; }
         public string Series { get; set; }
         public decimal Price { get; set; }
-        public int FavoriteCount { get; set; }
 
         [Required]
-        public List<int> ArtWorkSchoolOfArtIds { get; set; }
-
-        [Required]
-        public List<int> ArtistIds { get; set; }
+        public List<int> SchoolOfArtIds { get; set; }
     }
 }

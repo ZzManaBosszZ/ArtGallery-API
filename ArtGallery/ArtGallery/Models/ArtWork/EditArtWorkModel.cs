@@ -16,5 +16,6 @@
         public string Series { get; set; }
         public decimal Price { get; set; }
 
+
     }
 }

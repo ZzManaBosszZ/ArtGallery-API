@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,6 +14,8 @@ using ArtGallery.Models.ArtWork;
 using ArtGallery.Service.IMG;
 using Microsoft.AspNetCore.Authorization;
 using System.Net.Http.Headers;
+using ArtGallery.Models.SchoolOfArt;
+using ArtGallery.Service.Artists;
 
 namespace ArtGallery.Controllers
 {
@@ -23,43 +25,75 @@ namespace ArtGallery.Controllers
     {
         private readonly ArtGalleryApiContext _context;
         private readonly IImgService _imgService;
-
-        public ArtWorksController(ArtGalleryApiContext context ,IImgService imgService)
+        private readonly IArtistService _artistService;
+        public ArtWorksController(ArtGalleryApiContext context, IImgService imgService, IArtistService artistService)
         {
             _context = context;
             _imgService = imgService;
+            _artistService = artistService;
         }
 
         // GET: api/ArtWorks
         [HttpGet]
-        public async Task<IActionResult> GetAllArtWorks()
+        public async Task<IActionResult> GetAllArtWorks(
+[FromQuery] string search = null,
+[FromQuery] List<int> schoolOfArtsIds = null
+)
         {
             try
             {
-                List<ArtWork> genres = await _context.ArtWork.Where(m => m.DeletedAt == null).OrderBy(m => m.Id).ToListAsync();
-                List<ArtWorkDTO> result = new List<ArtWorkDTO>();
-                foreach (ArtWork m in genres)
+                var query = _context.ArtWork
+                    .Include(a => a.ArtWorkSchoolOfArts).ThenInclude(a => a.SchoolOfArt)
+                    .Where(a => a.DeletedAt == null);
+
+                if (!string.IsNullOrEmpty(search))
                 {
-                    result.Add(new ArtWorkDTO
+                    query = query.Where(a => a.Name.Contains(search));
+                }
+
+                // Áp dụng bộ lọc SchoolOfArtIds
+                if (schoolOfArtsIds != null && schoolOfArtsIds.Any())
+                {
+                    query = query.Where(a => a.ArtWorkSchoolOfArts.Any(a1 => schoolOfArtsIds.Contains(a1.SchoolOfArtId)));
+                }
+
+                List<ArtWork> artworks = await query.OrderByDescending(m => m.Id).ToListAsync();
+                List<ArtWorkDTO> result = new List<ArtWorkDTO>();
+                foreach (ArtWork aw in artworks)
+                {
+                    var artworkDTO = new ArtWorkDTO
                     {
-                        Id = m.Id,
-                        Name = m.Name,
-                        ArtWorkImage = m.ArtWorkImage,
-                        Medium = m.Medium,
-                        Materials = m.Materials,
-                        Size = m.Size,
-                        Condition = m.Condition,
-                        Signature = m.Signature,
-                        Rarity = m.Rarity,
-                        CertificateOfAuthenticity = m.CertificateOfAuthenticity,
-                        Frame = m.Frame,
-                        Series = m.Series,
-                        Price = m.Price,
-                        FavoriteCount = m.FavoriteCount,
-                        createdAt = m.CreatedAt,
-                        updatedAt = m.UpdatedAt,
-                        deletedAt = m.DeletedAt,
-                    });
+                        Id = aw.Id,
+                        Name = aw.Name,
+                        ArtWorkImage = aw.ArtWorkImage,
+                        Medium = aw.Medium,
+                        Materials = aw.Materials,
+                        Size = aw.Size,
+                        Condition = aw.Condition,
+                        Signature = aw.Signature,
+                        Rarity = aw.Rarity,
+                        CertificateOfAuthenticity = aw.CertificateOfAuthenticity,
+                        Frame = aw.Frame,
+                        Series = aw.Series,
+                        Price = aw.Price,
+                        FavoriteCount = aw.FavoriteCount,
+                        createdAt = aw.CreatedAt,
+                        updatedAt = aw.UpdatedAt,
+                        deletedAt = aw.DeletedAt,
+                    };
+                    var schoolOfArts = new List<SchoolOfArtResponse>();
+                    foreach (var item in aw.ArtWorkSchoolOfArts)
+                    {
+                        var schoolOfArt = new SchoolOfArtResponse
+                        {
+                            Id = item.Id,
+                            Name = item.SchoolOfArt.Name,
+                        };
+                        schoolOfArts.Add(schoolOfArt);
+
+                    }
+                    artworkDTO.SchoolOfArts=schoolOfArts;
+                    result.Add(artworkDTO);
                 }
                 return Ok(result);
 
@@ -85,10 +119,11 @@ namespace ArtGallery.Controllers
         {
             try
             {
-                ArtWork artWork = await _context.ArtWork.FirstOrDefaultAsync(a => a.Id == id && a.DeletedAt == null);
+                ArtWork artWork = await _context.ArtWork.Include(a => a.ArtWorkSchoolOfArts).ThenInclude(a => a.SchoolOfArt).FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
+
                 if (artWork != null)
                 {
-                  var ArtWorkDTO = new ArtWorkDTO
+                    var ArtWorkDTO = new ArtWorkDTO
                     {
 
                         Id = artWork.Id,
@@ -110,6 +145,18 @@ namespace ArtGallery.Controllers
                         deletedAt = artWork.DeletedAt,
                     };
                     ArtWorkDTO.FavoriteCount = await _context.Favorite.Where(f => f.ArtWorkId == artWork.Id).CountAsync();
+                    var schoolOfArts = new List<SchoolOfArtResponse>();
+
+                    foreach (var item in artWork.ArtWorkSchoolOfArts)
+                    {
+                        var schoolOfArt = new SchoolOfArtResponse
+                        {
+                            Id = item.Id,
+                            Name = item.SchoolOfArt.Name,
+                        };
+                        schoolOfArts.Add(schoolOfArt);
+                    }
+                    ArtWorkDTO.SchoolOfArts = schoolOfArts;
                     return Ok(artWork);
                 }
                 else
@@ -281,6 +328,19 @@ namespace ArtGallery.Controllers
                     _context.ArtWork.Add(artWork);
                     await _context.SaveChangesAsync();
 
+                    foreach (var schoolOfArtId in model.SchoolOfArtIds)
+                    {
+                        var ArtworkSchoolOfArt = new ArtWorkSchoolOfArt
+                        {
+                            ArtWorkId = artWork.Id,
+                            SchoolOfArtId = schoolOfArtId,
+                        };
+
+                        _context.ArtWorkSchoolOfArt.Add(ArtworkSchoolOfArt);
+
+                    }
+
+                    await _context.SaveChangesAsync();
                     return Created($"get-by-id?id={artWork.Id}", new ArtWorkDTO
                     {
                         Id = artWork.Id,
