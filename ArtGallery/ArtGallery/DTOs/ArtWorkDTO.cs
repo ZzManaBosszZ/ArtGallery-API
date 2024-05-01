@@ -1,4 +1,5 @@
-﻿using ArtGallery.Models.SchoolOfArt;
+﻿using ArtGallery.Entities;
+using ArtGallery.Models.SchoolOfArt;
 
 namespace ArtGallery.DTOs
 {
@@ -18,5 +19,6 @@ namespace ArtGallery.DTOs
         public decimal Price { get; set; }
         public int FavoriteCount { get; set; }
         public List<SchoolOfArtResponse>? SchoolOfArts { get; set; }
+
     }
 }

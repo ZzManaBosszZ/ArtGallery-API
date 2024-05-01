@@ -221,6 +221,8 @@ namespace ArtGallery.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ArtWorkId");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("Favorite");
@@ -234,11 +236,18 @@ namespace ArtGallery.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("ArtWorkId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("OfferCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("OfferPrice")
                         .HasColumnType("decimal(18,2)");
@@ -246,13 +255,21 @@ namespace ArtGallery.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("Total")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
+                    b.Property<int>("UserName")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ArtWorkId");
 
                     b.HasIndex("UserId");
 
@@ -408,7 +425,7 @@ namespace ArtGallery.Migrations
             modelBuilder.Entity("ArtGallery.Entities.ArtistArtWork", b =>
                 {
                     b.HasOne("ArtGallery.Entities.ArtWork", "ArtWork")
-                        .WithMany("ArtistArtWorks")
+                        .WithMany()
                         .HasForeignKey("ArtWorkId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -445,17 +462,31 @@ namespace ArtGallery.Migrations
 
             modelBuilder.Entity("ArtGallery.Entities.Favorite", b =>
                 {
+                    b.HasOne("ArtGallery.Entities.ArtWork", "ArtWork")
+                        .WithMany("Favorites")
+                        .HasForeignKey("ArtWorkId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ArtGallery.Entities.User", "User")
                         .WithMany("Favorites")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("ArtWork");
+
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("ArtGallery.Entities.Offer", b =>
                 {
+                    b.HasOne("ArtGallery.Entities.ArtWork", null)
+                        .WithMany("Offers")
+                        .HasForeignKey("ArtWorkId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ArtGallery.Entities.User", "User")
                         .WithMany("Offers")
                         .HasForeignKey("UserId")
@@ -488,7 +519,9 @@ namespace ArtGallery.Migrations
                 {
                     b.Navigation("ArtWorkSchoolOfArts");
 
-                    b.Navigation("ArtistArtWorks");
+                    b.Navigation("Favorites");
+
+                    b.Navigation("Offers");
                 });
 
             modelBuilder.Entity("ArtGallery.Entities.Artist", b =>

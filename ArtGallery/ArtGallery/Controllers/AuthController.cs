@@ -1,7 +1,9 @@
 ﻿using ArtGallery.DTOs;
 using ArtGallery.Entities;
 using ArtGallery.Helper;
+using ArtGallery.Models.ArtWork;
 using ArtGallery.Models.GeneralService;
+using ArtGallery.Models.SchoolOfArt;
 using ArtGallery.Models.Users;
 using ArtGallery.Service.Email;
 using Microsoft.AspNetCore.Authorization;
@@ -465,6 +467,63 @@ namespace ArtGallery.Controllers
             });
 
         }
+
+
+        [HttpGet]
+        //[Authorize(Roles = "Super Admin")]
+        public async Task<IActionResult> GetUserAll(
+        [FromQuery] string search = null)
+        {
+            try
+            {
+                // Bắt đầu với truy vấn gốc để lấy danh sách nghệ sĩ
+                var query = _context.Users.Where(a => a.DeletedAt == null);
+
+                // Áp dụng bộ lọc tìm kiếm
+                if (!string.IsNullOrEmpty(search))
+                {
+                    query = query.Where(a => a.Fullname.Contains(search));
+                }
+
+                // Áp dụng bộ lọc SchoolOfArtIds
+               
+                List<User> user = await query.OrderByDescending(m => m.Id).ToListAsync();
+                List<UserDTO> result = new List<UserDTO>();
+
+                foreach (User a in user)
+                {
+                    var artistDTO = new UserDTO
+                    {
+                        Id = a.Id,
+                        fullname=a.Fullname,
+                        role=a.Role,
+                        phone=a.Phone,
+                        birthday=a.Birthday,
+                        email=a.Email,
+                        createdAt = a.CreatedAt,
+                        updatedAt = a.UpdatedAt,
+                        deletedAt = a.DeletedAt,
+                    };
+
+                    result.Add(artistDTO);
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                var response = new GeneralService
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    Message = ex.Message,
+                    Data = ""
+                };
+
+                return BadRequest(response);
+            }
+        }
     }
+
 
 }

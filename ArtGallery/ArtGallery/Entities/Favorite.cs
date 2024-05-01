@@ -1,4 +1,6 @@
-﻿namespace ArtGallery.Entities
+﻿using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
+
+namespace ArtGallery.Entities
 {
     public partial class Favorite
     {
@@ -14,8 +16,8 @@
 
         public DateTime? DeletedAt { get; set; }
 
-        //public virtual Movie Movie { get; set; } = null!;
-
+       
+        public virtual ArtWork ArtWork { get; set; } = null!;
         public virtual User User { get; set; } = null!;
     }
 }

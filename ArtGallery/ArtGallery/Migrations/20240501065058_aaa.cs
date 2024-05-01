@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ArtGallery.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class aaa : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -205,6 +205,12 @@ namespace ArtGallery.Migrations
                 {
                     table.PrimaryKey("PK_Favorite", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_Favorite_ArtWork_ArtWorkId",
+                        column: x => x.ArtWorkId,
+                        principalTable: "ArtWork",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
                         name: "FK_Favorite_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
@@ -219,7 +225,11 @@ namespace ArtGallery.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
+                    ArtWorkId = table.Column<int>(type: "int", nullable: false),
+                    UserName = table.Column<int>(type: "int", nullable: false),
+                    OfferCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     OfferPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Total = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -228,6 +238,12 @@ namespace ArtGallery.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Offer", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Offer_ArtWork_ArtWorkId",
+                        column: x => x.ArtWorkId,
+                        principalTable: "ArtWork",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Offer_Users_UserId",
                         column: x => x.UserId,
@@ -260,7 +276,7 @@ namespace ArtGallery.Migrations
                         column: x => x.OfferId,
                         principalTable: "Offer",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateIndex(
@@ -294,9 +310,19 @@ namespace ArtGallery.Migrations
                 column: "SchoolOfArtId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Favorite_ArtWorkId",
+                table: "Favorite",
+                column: "ArtWorkId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Favorite_UserId",
                 table: "Favorite",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Offer_ArtWorkId",
+                table: "Offer",
+                column: "ArtWorkId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Offer_UserId",
@@ -342,10 +368,10 @@ namespace ArtGallery.Migrations
                 name: "SchoolOfArt");
 
             migrationBuilder.DropTable(
-                name: "ArtWork");
+                name: "Offer");
 
             migrationBuilder.DropTable(
-                name: "Offer");
+                name: "ArtWork");
 
             migrationBuilder.DropTable(
                 name: "Users");
