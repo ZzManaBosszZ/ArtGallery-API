@@ -153,7 +153,6 @@ namespace ArtGallery.Controllers
                         {
                             Id = item.SchoolOfArt.Id,
                             Name = item.SchoolOfArt.Name,
-
                         };
                         schoolOfArts.Add(schoolOfArtResponse);
                     }

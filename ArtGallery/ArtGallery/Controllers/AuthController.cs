@@ -1,7 +1,9 @@
 ﻿using ArtGallery.DTOs;
 using ArtGallery.Entities;
 using ArtGallery.Helper;
+using ArtGallery.Models.ArtWork;
 using ArtGallery.Models.GeneralService;
+using ArtGallery.Models.SchoolOfArt;
 using ArtGallery.Models.Users;
 using ArtGallery.Service.Email;
 using Microsoft.AspNetCore.Authorization;
@@ -466,10 +468,11 @@ namespace ArtGallery.Controllers
 
         }
 
-        [HttpGet("user")]
+
+        [HttpGet]
         //[Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> GetUserAll(
-[FromQuery] string search = null)
+        [FromQuery] string search = null)
         {
             try
             {
@@ -483,7 +486,7 @@ namespace ArtGallery.Controllers
                 }
 
                 // Áp dụng bộ lọc SchoolOfArtIds
-
+               
                 List<User> user = await query.OrderByDescending(m => m.Id).ToListAsync();
                 List<UserDTO> result = new List<UserDTO>();
 
@@ -521,5 +524,6 @@ namespace ArtGallery.Controllers
             }
         }
     }
+
 
 }

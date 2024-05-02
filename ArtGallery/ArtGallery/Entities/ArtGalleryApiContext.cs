@@ -16,7 +16,7 @@ namespace ArtGallery.Entities
            : base(options)
         {
         }
-        public DbSet<ArtGallery.Entities.Artist> Artist { get; set; } = default!;
+        public DbSet<ArtGallery.Entities.Artist> Artist { get; set; } /*= default!;*/
         public DbSet<ArtGallery.Entities.ArtWork> ArtWork { get; set; } = default!;
         public DbSet<ArtGallery.Entities.SchoolOfArt> SchoolOfArt { get; set; } = default!;
         public DbSet<ArtGallery.Entities.Offer> Offer { get; set; } = default!;
