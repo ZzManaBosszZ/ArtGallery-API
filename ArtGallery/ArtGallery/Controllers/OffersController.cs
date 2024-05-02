@@ -13,6 +13,7 @@ using System.Security.Claims;
 using ArtGallery.Models.Offer;
 using ArtGallery.Helper;
 using ArtGallery.Service.Email;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 
 namespace ArtGallery.Controllers
 {
@@ -30,7 +31,7 @@ namespace ArtGallery.Controllers
         }
 
 
-        [HttpGet]
+        [HttpGet("GetOrderAllAdmin")]
         public async Task<IActionResult> GetOrderAll()
         {
             try
@@ -80,7 +81,7 @@ namespace ArtGallery.Controllers
             }
         }
 
-        [HttpGet("get-by-id/{code_order}")]
+        [HttpGet("get-by-id-admin/{code_order}")]
         //[Authorize(Roles = "Super Admin, Movie Theater Manager Staff")]
         public async Task<IActionResult> GetOrderDetail(string code_order)
         {
@@ -302,7 +303,7 @@ namespace ArtGallery.Controllers
             }
         }
 
-        [HttpPost("CreateOffer")]
+        [HttpPost("CreateOfferUser")]
         //[Authorize]
         public async Task<IActionResult> CreateOffer(CreateOffer model)
         {
@@ -371,8 +372,9 @@ namespace ArtGallery.Controllers
 
                 Mailrequest mailrequest = new Mailrequest();
                 mailrequest.ToEmail = user.Email;
-                mailrequest.Subject = "R Ticket: Successful Transaction";
+                mailrequest.Subject = "Successful ";
                 //mailrequest.Body = 
+                await _emailService.SendEmailAsync(mailrequest);
 
                 return Created($"get-by-id?id={offer.Id}", new OfferDTO
                 {
@@ -400,6 +402,71 @@ namespace ArtGallery.Controllers
                 return BadRequest(response);
             }
         }
+
+        [HttpPut("update-status-Admin/{offerCode}")]
+        public async Task<IActionResult> UpdateOfferStatus(string offerCode, [FromForm] UpdateStatusRequest request)
+        {
+            // Tìm đề xuất với OfferCode tương ứng
+            var offer = await _context.Offer.Include(o => o.User).FirstOrDefaultAsync(o => o.OfferCode == offerCode);
+            if (offer == null)
+            {
+                return NotFound("Offer not found");
+            }
+
+            // Kiểm tra hành động cần thực hiện
+            switch (request.Action)
+            {
+                case "accept":
+                    // Chấp nhận offer
+                    offer.Status = 1; // hoặc một giá trị khác để biểu thị trạng thái chấp nhận
+                                      // Gửi email thông báo chấp nhận
+                    await _emailService.SendEmailAsync(new Mailrequest
+                    {
+                        ToEmail = offer.User.Email,
+                        Subject = "Offer Accepted",
+                        Body = $"Your offer with Code {offerCode} has been accepted."
+                    });
+                    break;
+                case "cancel":
+                    // Hủy offer
+                    offer.Status = -1; // hoặc một giá trị khác để biểu thị trạng thái hủy
+                                       // Gửi email thông báo hủy
+                    await _emailService.SendEmailAsync(new Mailrequest
+                    {
+                        ToEmail = offer.User.Email,
+                        Subject = "Offer Cancelled",
+                        Body = $"Your offer with Code {offerCode} has been cancelled."
+                    });
+
+
+                    break;
+                default:
+                    return BadRequest("Invalid action");
+            }
+
+            _context.Entry(offer).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!OfferExists(offer.Id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+
+
 
         private bool OfferExists(int id)
         {
