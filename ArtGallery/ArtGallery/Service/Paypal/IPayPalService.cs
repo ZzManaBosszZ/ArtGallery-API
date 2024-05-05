@@ -1,4 +1,6 @@
-﻿namespace ArtGallery.Service.Paypal
+﻿using ArtGallery.Models.PayPal;
+
+namespace ArtGallery.Service.Paypal
 {
     public interface IPayPalService
     {
