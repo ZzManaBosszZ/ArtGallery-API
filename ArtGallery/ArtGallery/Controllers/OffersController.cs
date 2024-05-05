@@ -39,7 +39,7 @@ namespace ArtGallery.Controllers
                 // Lấy tất cả các đề xuất từ cơ sở dữ liệu
                 List<Offer> offers = await _context.Offer
                     .Include(o => o.User) // Nạp thông tin người dùng
-                    .Include(o => o.OfferArtWorks).ThenInclude(o => o.ArtWork) 
+                    .Include(o => o.OfferArtWorks).ThenInclude(o => o.ArtWork)
                     .OrderByDescending(p => p.Id)
                     .ToListAsync();
                 List<OfferDTO> result = new List<OfferDTO>();
@@ -127,7 +127,7 @@ namespace ArtGallery.Controllers
                 return BadRequest(response);
             }
         }
-       
+
 
 
         [HttpGet("get-by-user")]
@@ -139,10 +139,11 @@ namespace ArtGallery.Controllers
             if (!identity.IsAuthenticated)
             {
                 return Unauthorized(new GeneralService
-                { Success = false,
+                {
+                    Success = false,
                     StatusCode = 401,
                     Message = "Not Authorized",
-                    Data = "" 
+                    Data = ""
                 });
             }
 
@@ -157,7 +158,8 @@ namespace ArtGallery.Controllers
                 if (user == null)
                 {
                     return Unauthorized(new GeneralService
-                    { Success = false,
+                    {
+                        Success = false,
                         StatusCode = 401,
                         Message = "Not Authorized",
                         Data = ""
@@ -179,10 +181,10 @@ namespace ArtGallery.Controllers
                     {
                         Id = offer.Id,
                         UserId = offer.UserId,
-                        UserName = user.Fullname, 
+                        UserName = user.Fullname,
                         OfferPrice = offer.OfferPrice,
-                        ArtWorkId = offer.ArtWorkId,    
-                        OfferCode = offer.OfferCode,    
+                        ArtWorkId = offer.ArtWorkId,
+                        OfferCode = offer.OfferCode,
                         ToTal = offer.Total,
                         ArtWorkNames = offer.OfferArtWorks.Select(oaw => oaw.ArtWork.Name).ToList(),
                         ArtWorkImages = offer.OfferArtWorks.Select(oaw => oaw.ArtWork.ArtWorkImage).ToList(),
@@ -218,7 +220,8 @@ namespace ArtGallery.Controllers
 
             if (!identity.IsAuthenticated)
             {
-                return Unauthorized(new GeneralService { 
+                return Unauthorized(new GeneralService
+                {
                     Success = false,
                     StatusCode = 401,
                     Message = "Not Authorized",
@@ -235,12 +238,12 @@ namespace ArtGallery.Controllers
 
                 if (user == null)
                 {
-                    return Unauthorized(new GeneralService 
-                    { 
-                        Success = false, 
+                    return Unauthorized(new GeneralService
+                    {
+                        Success = false,
                         StatusCode = 401,
                         Message = "Not Authorized",
-                        Data = "" 
+                        Data = ""
                     });
                 }
 
@@ -250,7 +253,7 @@ namespace ArtGallery.Controllers
                     .ThenInclude(o => o.ArtWork)
                     .FirstOrDefaultAsync(x => x.OfferCode.Equals(OfferCode) && x.DeletedAt == null && x.UserId == user.Id);
                 if (offer != null)
-                { 
+                {
                     var offerDetail = new OfferDetail
                     {
                         Id = offer.Id,
@@ -311,10 +314,10 @@ namespace ArtGallery.Controllers
 
             if (!identity.IsAuthenticated)
             {
-                return Unauthorized(new GeneralService 
-                { 
+                return Unauthorized(new GeneralService
+                {
                     Success = false,
-                    StatusCode = 401, 
+                    StatusCode = 401,
                     Message = "Not Authorized",
                     Data = ""
                 });
@@ -330,11 +333,11 @@ namespace ArtGallery.Controllers
                 if (user == null)
                 {
                     return Unauthorized(new GeneralService
-                    { 
+                    {
                         Success = false,
                         StatusCode = 401,
-                        Message = "Not Authorized", 
-                        Data = "" 
+                        Message = "Not Authorized",
+                        Data = ""
                     });
                 }
 
@@ -365,7 +368,7 @@ namespace ArtGallery.Controllers
                         ArtWorkId = item.ArtWorkId,
                         ArtWorkName = item.ArtWork.Name,
                         ArtWorkImage = item.ArtWork.ArtWorkImage,
-                        OfferPrice = item.Price,   
+                        OfferPrice = item.Price,
                     };
                     ArtWork.Add(ArtWorks);
                 }
@@ -427,7 +430,7 @@ namespace ArtGallery.Controllers
                         Body = $"Your offer with Code {offerCode} has been accepted."
                     });
                     break;
-                case "cancel":
+                case "reject":
                     // Hủy offer
                     offer.Status = -1; // hoặc một giá trị khác để biểu thị trạng thái hủy
                                        // Gửi email thông báo hủy
