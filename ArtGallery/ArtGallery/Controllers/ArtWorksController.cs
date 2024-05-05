@@ -92,7 +92,7 @@ namespace ArtGallery.Controllers
                         schoolOfArts.Add(schoolOfArt);
 
                     }
-                    artworkDTO.SchoolOfArts=schoolOfArts;
+                    artworkDTO.SchoolOfArts = schoolOfArts;
                     result.Add(artworkDTO);
                 }
                 return Ok(result);
@@ -143,7 +143,7 @@ namespace ArtGallery.Controllers
                         Price = artWork.Price,
                         FavoriteCount = artWork.FavoriteCount,
                         createdAt = artWork.CreatedAt,
-                       
+
                     };
 
                     var schoolOfArts = new List<SchoolOfArtResponse>();
@@ -153,7 +153,6 @@ namespace ArtGallery.Controllers
                         {
                             Id = item.SchoolOfArt.Id,
                             Name = item.SchoolOfArt.Name,
-                            
                         };
                         schoolOfArts.Add(schoolOfArtResponse);
                     }
