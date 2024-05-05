@@ -468,9 +468,6 @@ namespace ArtGallery.Controllers
             return NoContent();
         }
 
-
-
-
         private bool OfferExists(int id)
         {
             return _context.Offer.Any(e => e.Id == id);
