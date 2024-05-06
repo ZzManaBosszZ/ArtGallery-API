@@ -233,5 +233,18 @@ namespace ArtGallery.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpGet("total-cusAndSta")]
+        
+        public async Task<IActionResult> GetUserCount()
+        {
+            var userCount = new
+            {
+                TotalUser = await _context.Users.Where(u => u.Role.Equals("User")).CountAsync(),
+                TotalArtist = await _context.Users.Where(u => u.Role.Equals("Artist")).CountAsync(),
+            };
+
+            return Ok(userCount);
+        }
     }
 }
