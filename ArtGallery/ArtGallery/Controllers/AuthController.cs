@@ -473,7 +473,7 @@ namespace ArtGallery.Controllers
         [Route("user")]
         //[Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> GetUserAll(
-[FromQuery] string search = null)
+        [FromQuery] string search = null)
         {
             try
             {
