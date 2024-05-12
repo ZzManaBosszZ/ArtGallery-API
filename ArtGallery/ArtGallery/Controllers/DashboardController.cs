@@ -153,7 +153,7 @@ namespace ArtGallery.Controllers
             DateTime today = DateTime.UtcNow.Date;
             List<DateTime> past7Days = Enumerable.Range(0, 7)
                 .Select(offset => today.AddDays(-offset))
-                .ToList();
+                .ToList(); 
             var past7DaysSales = past7Days
                 .GroupJoin(_context.Offer,
                     date => date.Date,
