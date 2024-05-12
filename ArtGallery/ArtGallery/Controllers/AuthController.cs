@@ -381,6 +381,7 @@ namespace ArtGallery.Controllers
                     email = user.Email,
                     fullname = user.Fullname,
                     birthday = user.Birthday,
+                    address = user.Address,
                     phone = user.Phone,
                 });
             }
@@ -438,6 +439,7 @@ namespace ArtGallery.Controllers
 
                     user.Birthday = model.birthday;
                     user.Phone = model.phone;
+                    user.Address = model.address;
                     user.UpdatedAt = DateTime.Now;
 
                     _context.Users.Update(user);
@@ -500,6 +502,7 @@ namespace ArtGallery.Controllers
                         phone=a.Phone,
                         birthday=a.Birthday,
                         email=a.Email,
+                        address=a.Address,
                         createdAt = a.CreatedAt,
                         updatedAt = a.UpdatedAt,
                         deletedAt = a.DeletedAt,
