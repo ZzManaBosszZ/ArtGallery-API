@@ -129,6 +129,7 @@ namespace ArtGallery.Controllers
                     Fullname = model.fullname,
                     Email = model.email,
                     Password = hassPassword,
+                    Phone = model.phone,
                     Role = "User",
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now,
