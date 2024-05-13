@@ -473,14 +473,15 @@ namespace ArtGallery.Controllers
 
 
         [HttpGet]
+        [Route("user")]
         //[Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> GetUserAll(
-        [FromQuery] string search = null)
+[FromQuery] string search = null)
         {
             try
             {
-                // Bắt đầu với truy vấn gốc để lấy danh sách nghệ sĩ
-                var query = _context.Users.Where(a => a.DeletedAt == null);
+                // Bắt đầu với truy vấn gốc để lấy danh sách người dùng
+                var query = _context.Users.Where(a => a.DeletedAt == null && a.Role == "User");
 
                 // Áp dụng bộ lọc tìm kiếm
                 if (!string.IsNullOrEmpty(search))
@@ -488,14 +489,12 @@ namespace ArtGallery.Controllers
                     query = query.Where(a => a.Fullname.Contains(search));
                 }
 
-                // Áp dụng bộ lọc SchoolOfArtIds
-               
-                List<User> user = await query.OrderByDescending(m => m.Id).ToListAsync();
+                List<User> users = await query.OrderByDescending(m => m.Id).ToListAsync();
                 List<UserDTO> result = new List<UserDTO>();
 
-                foreach (User a in user)
+                foreach (User user in users)
                 {
-                    var artistDTO = new UserDTO
+                    var userDTO = new UserDTO
                     {
                         Id = a.Id,
                         fullname=a.Fullname,
@@ -509,7 +508,7 @@ namespace ArtGallery.Controllers
                         deletedAt = a.DeletedAt,
                     };
 
-                    result.Add(artistDTO);
+                    result.Add(userDTO);
                 }
 
                 return Ok(result);
