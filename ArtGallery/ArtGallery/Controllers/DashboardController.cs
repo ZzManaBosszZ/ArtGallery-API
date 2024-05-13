@@ -230,7 +230,7 @@ namespace ArtGallery.Controllers
                         OfferCode = offer.OfferCode,
                         ArtWorkId = offer.ArtWorkId,
                         UserId = offer.UserId,
-                        UserName = offer.User.Fullname,
+                        //UserName = offer.User.Fullname,
                         ToTal = offer.Total,
                         Status = offer.Status,
                         ArtWorkNames = offer.OfferArtWorks.Select(oaw => oaw.ArtWork.Name).ToList(),

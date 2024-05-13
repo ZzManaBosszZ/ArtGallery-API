@@ -184,7 +184,7 @@ namespace ArtGallery.Controllers
                     {
                         Id = offer.Id,
                         UserId = offer.UserId,
-                        UserName = user.Fullname,
+                        //UserName = user.Fullname,
                         OfferPrice = offer.OfferPrice,
                         ArtWorkId = offer.ArtWorkId,
                         OfferCode = offer.OfferCode,
@@ -313,7 +313,7 @@ namespace ArtGallery.Controllers
         }
 
         [HttpPost("CreateOfferUser")]
-        //[Authorize]
+        [Authorize]
         public async Task<IActionResult> CreateOffer(CreateOffer model)
         {
             var identity = HttpContext.User.Identity as ClaimsIdentity;
@@ -395,6 +395,7 @@ namespace ArtGallery.Controllers
                     UserId = offer.UserId,
                     ToTal = offer.Total,
                     Status = offer.Status,
+                    //UserName = offer.User.Fullname,
                     createdAt = offer.CreatedAt,
                     updatedAt = offer.UpdatedAt,
                     deletedAt = offer.DeletedAt,

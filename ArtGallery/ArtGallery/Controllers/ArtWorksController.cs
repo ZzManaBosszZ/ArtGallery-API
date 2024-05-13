@@ -96,7 +96,6 @@ namespace ArtGallery.Controllers
 
                     }
                     artworkDTO.SchoolOfArts = schoolOfArts;
-                    result.Add(artworkDTO);
                   
                     foreach (var item in aw.ArtistArtWorks)
                     {
