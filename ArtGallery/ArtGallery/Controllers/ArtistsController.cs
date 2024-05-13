@@ -119,8 +119,9 @@ namespace ArtGallery.Controllers
 
                         };
                         artWorks.Add(artWork);
-                        artistDTO.ArtWork = artWorks;
+                       
                     }
+                    artistDTO.ArtWork = artWorks;
                     result.Add(artistDTO);
                 }
 
