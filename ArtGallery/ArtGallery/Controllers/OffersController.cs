@@ -102,6 +102,7 @@ namespace ArtGallery.Controllers
                         ToTal = offer.Total,
                         ArtWorkNames = offer.OfferArtWorks.Select(oaw => oaw.ArtWork.Name).ToList(),
                         ArtWorkImages = offer.OfferArtWorks.Select(oaw => oaw.ArtWork.ArtWorkImage).ToList(),
+                        Address = offer.Address,
                         Status = offer.Status,
                         createdAt = offer.CreatedAt,
                         updatedAt = offer.UpdatedAt,
@@ -131,7 +132,7 @@ namespace ArtGallery.Controllers
 
 
         [HttpGet("get-by-user")]
-        //[Authorize]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> GetOfferByUser()
         {
             var identity = HttpContext.User.Identity as ClaimsIdentity;
@@ -263,6 +264,7 @@ namespace ArtGallery.Controllers
                         OfferPrice = offer.OfferPrice,
                         ToTal = offer.Total,
                         Status = offer.Status,
+                        Address = offer.Address,
                         CreatedAt = offer.CreatedAt,
                         UpdatedAt = offer.UpdatedAt,
                         DeletedAt = offer.DeletedAt,
@@ -348,6 +350,7 @@ namespace ArtGallery.Controllers
                     UserId = user.Id,
                     Total = model.Total,
                     Status = 0,
+                    Address = user.Address,
                     //PaymentMethod = model.paymentMethod,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now,

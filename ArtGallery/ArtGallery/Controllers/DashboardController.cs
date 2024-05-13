@@ -1,4 +1,6 @@
-﻿using ArtGallery.Entities;
+﻿using ArtGallery.DTOs;
+using ArtGallery.Entities;
+using ArtGallery.Models.GeneralService;
 using ArtGallery.Service.Artists;
 using ArtGallery.Service.IMG;
 using Microsoft.AspNetCore.Authorization;
@@ -216,22 +218,76 @@ namespace ArtGallery.Controllers
         }
 
         // GET: api/Offer/TotalOfferToday
-        [HttpGet("TotalOfferToday")]
-        public async Task<IActionResult> GetTotalOfferToday()
+        [HttpGet("list-order-today")]
+       
+        public async Task<IActionResult> GetListOfferToDay()
         {
             try
             {
-                DateTime today = DateTime.Today; 
-                var totalOfferToday = await _context.Offer
-                    .Where(o => o.CreatedAt.HasValue && o.CreatedAt.Value.Date == today)
-                    .CountAsync();
+                DateTime today = DateTime.Now.Date;
+                List<Offer> offers = await _context.Offer.Include(o => o.User).Include(o => o.OfferArtWorks).ThenInclude(o => o.ArtWork).Where(o => o.CreatedAt.Value.Date == today).OrderByDescending(p => p.CreatedAt).ToListAsync();
+                List<OfferDTO> result = new List<OfferDTO>();
+                foreach (var offer in offers)
+                {
+                    result.Add(new OfferDTO
+                    {
+                        Id = offer.Id,
+                        OfferCode = offer.OfferCode,
+                        UserId = offer.UserId,
+                        UserName = offer.User.Fullname,
+                        ToTal = offer.Total,
+                        Status = offer.Status,
+                        ArtWorkNames = offer.OfferArtWorks.Select(oaw => oaw.ArtWork.Name).ToList(),
+                        createdAt = offer.CreatedAt,
+                        updatedAt = offer.UpdatedAt,
+                        deletedAt = offer.DeletedAt,
+                    });
+                }
 
-                return Ok(new { totalOfferToday });
+                return Ok(result);
+
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                var response = new GeneralService
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    Message = ex.Message,
+                    Data = ""
+                };
+
+                return BadRequest(response);
             }
+        }     
+
+        [HttpGet("total-cusAndSta")]  
+        public async Task<IActionResult> GetUserCount()
+        {
+            var userCount = new
+            {
+                TotalUser = await _context.Users.Where(u => u.Role.Equals("User")).CountAsync(),
+                TotalArtist = await _context.Users.Where(u => u.Role.Equals("Artist")).CountAsync(),
+            };
+
+            return Ok(userCount);
         }
+
+        [HttpGet("order-overview")]
+        public async Task<IActionResult> GetOfferOverview()
+        {
+            var totalOffers = new
+            {
+                DailyRevenue = await _context.Offer
+                    .Where(offer => offer.CreatedAt.Value.Date == DateTime.Today)
+                    .SumAsync(offer => offer.Total),
+                MonthlyRevenue = await _context.Offer
+                    .Where(offer => offer.CreatedAt.Value.Month == DateTime.Today.Month && offer.CreatedAt.Value.Year == DateTime.Today.Year)
+                    .SumAsync(offer => offer.Total)
+            };
+
+            return Ok(totalOffers);
+        }
+
     }
 }

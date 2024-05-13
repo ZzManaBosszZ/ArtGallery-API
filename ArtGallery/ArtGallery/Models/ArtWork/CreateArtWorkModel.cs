@@ -19,5 +19,7 @@ namespace ArtGallery.Models.ArtWork
 
         [Required]
         public List<int> SchoolOfArtIds { get; set; }
+
+        public List<int> ArtistId { get; set; }
     }
 }

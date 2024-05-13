@@ -24,7 +24,7 @@
 
         public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
         public virtual ICollection<Offer> Offers { get; set; } = new List<Offer>();
-        //public virtual ICollection<ArtistArtWork> ArtistArtWorks { get; set; } = new List<ArtistArtWork>();
+        public virtual ICollection<ArtistArtWork> ArtistArtWorks { get; set; } = new List<ArtistArtWork>();
         //public virtual ICollection<GalleryArtWork> GalleryArtWorks { get; set; } = new List<GalleryArtWork>();
     }
 }

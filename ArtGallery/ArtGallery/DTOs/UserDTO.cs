@@ -14,6 +14,8 @@
 
         public string role { get; set; } = null!;
 
+        public string address { get; set; } = null!;
+
         //public int status { get; set; }
 
         public string? resetToken { get; set; }

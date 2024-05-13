@@ -129,6 +129,7 @@ namespace ArtGallery.Controllers
                     Fullname = model.fullname,
                     Email = model.email,
                     Password = hassPassword,
+                    Phone = model.phone,
                     Role = "User",
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now,
@@ -381,6 +382,7 @@ namespace ArtGallery.Controllers
                     email = user.Email,
                     fullname = user.Fullname,
                     birthday = user.Birthday,
+                    address = user.Address,
                     phone = user.Phone,
                 });
             }
@@ -438,6 +440,7 @@ namespace ArtGallery.Controllers
 
                     user.Birthday = model.birthday;
                     user.Phone = model.phone;
+                    user.Address = model.address;
                     user.UpdatedAt = DateTime.Now;
 
                     _context.Users.Update(user);
@@ -493,15 +496,16 @@ namespace ArtGallery.Controllers
                 {
                     var userDTO = new UserDTO
                     {
-                        Id = user.Id,
-                        fullname = user.Fullname,
-                        role = user.Role,
-                        phone = user.Phone,
-                        birthday = user.Birthday,
-                        email = user.Email,
-                        createdAt = user.CreatedAt,
-                        updatedAt = user.UpdatedAt,
-                        deletedAt = user.DeletedAt,
+                        Id = a.Id,
+                        fullname=a.Fullname,
+                        role=a.Role,
+                        phone=a.Phone,
+                        birthday=a.Birthday,
+                        email=a.Email,
+                        address=a.Address,
+                        createdAt = a.CreatedAt,
+                        updatedAt = a.UpdatedAt,
+                        deletedAt = a.DeletedAt,
                     };
 
                     result.Add(userDTO);
