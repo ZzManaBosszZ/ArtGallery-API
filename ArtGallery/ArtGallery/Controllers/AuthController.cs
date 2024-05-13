@@ -496,16 +496,16 @@ namespace ArtGallery.Controllers
                 {
                     var userDTO = new UserDTO
                     {
-                        Id = a.Id,
-                        fullname=a.Fullname,
-                        role=a.Role,
-                        phone=a.Phone,
-                        birthday=a.Birthday,
-                        email=a.Email,
-                        address=a.Address,
-                        createdAt = a.CreatedAt,
-                        updatedAt = a.UpdatedAt,
-                        deletedAt = a.DeletedAt,
+                        Id = user.Id,
+                        fullname = user.Fullname,
+                        role = user.Role,
+                        phone = user.Phone,
+                        birthday = user.Birthday,
+                        email = user.Email,
+                        address = user.Address,
+                        createdAt = user.CreatedAt,
+                        updatedAt = user.UpdatedAt,
+                        deletedAt = user.DeletedAt,
                     };
 
                     result.Add(userDTO);
