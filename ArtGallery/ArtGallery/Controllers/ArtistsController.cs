@@ -252,6 +252,7 @@ namespace ArtGallery.Controllers
                         Name = model.Name,
                         Image = image,
                         Biography = model.Biography,
+                        Description = model.Description,
                         CreatedAt = DateTime.Now,
                         DeletedAt = null,
                         UpdatedAt = null,
