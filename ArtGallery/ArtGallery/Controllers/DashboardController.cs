@@ -1,3 +1,4 @@
+﻿
 ﻿using ArtGallery.DTOs;
 using ArtGallery.Entities;
 using ArtGallery.Models.GeneralService;
@@ -98,16 +99,16 @@ namespace ArtGallery.Controllers
             int startYear = currentYear - 4;
             List<int> allYears = Enumerable.Range(startYear, 5).ToList();
             var yearlySales = allYears
-                .GroupJoin(_context.Offer,
-                    year => year,
-                    order => order.CreatedAt.Value.Year,
-                    (year, orders) => new
-                    {
-                        Year = year,
-                        TotalSales = orders.Sum(o => o.Total)
-                    })
-                .OrderBy(result => result.Year)
-                .ToList();
+       .GroupJoin(_context.Offer.Where(o => o.IsPaid == 1), // Lọc các đơn hàng đã thanh toán
+           year => year,
+           order => order.CreatedAt.Value.Year,
+           (year, orders) => new
+           {
+               Year = year,
+               TotalSales = orders.Sum(o => o.Total)
+           })
+       .OrderBy(result => result.Year)
+       .ToList();
 
             return Ok(yearlySales);
         }
@@ -125,24 +126,25 @@ namespace ArtGallery.Controllers
                 .Select(offset => startDate.AddMonths(offset))
                 .ToList();
             var monthlySales = allMonthsOfYear
-                .GroupJoin(_context.Offer,
-                    date => new { Year = date.Year, Month = date.Month },
-                    order => new { Year = order.CreatedAt.Value.Year, Month = order.CreatedAt.Value.Month },
-                    (date, orders) => new
-                    {
-                        Year = date.Year,
-                        Month = date.Month,
-                        TotalSales = orders.Sum(o => o.Total)
-                    })
-                .OrderBy(result => result.Year)
-                .ThenBy(result => result.Month)
-                .Select(result => new
-                {
-                    Year = result.Year,
-                    Month = result.Month,
-                    TotalSales = result.TotalSales
-                })
-                .ToList();
+         .GroupJoin(_context.Offer.Where(o => o.IsPaid == 1),
+             date => new { Year = date.Year, Month = date.Month },
+             order => new { Year = order.CreatedAt.Value.Year, Month = order.CreatedAt.Value.Month },
+             (date, orders) => new
+             {
+                 Year = date.Year,
+                 Month = date.Month,
+                 TotalSales = orders.Sum(o => o.Total)
+             })
+         .OrderBy(result => result.Year)
+         .ThenBy(result => result.Month)
+         .Select(result => new
+         {
+             Year = result.Year,
+             Month = result.Month,
+             TotalSales = result.TotalSales
+         })
+         .ToList();
+
 
             return Ok(monthlySales);
         }
@@ -153,22 +155,23 @@ namespace ArtGallery.Controllers
             DateTime today = DateTime.UtcNow.Date;
             List<DateTime> past7Days = Enumerable.Range(0, 7)
                 .Select(offset => today.AddDays(-offset))
-                .ToList(); 
-            var past7DaysSales = past7Days
-                .GroupJoin(_context.Offer,
-                    date => date.Date,
-                    order => order.CreatedAt.Value.Date,
-                    (date, orders) => new
-                    {
-                        Date = date,
-                        TotalSales = orders.Sum(o => o.Total)
-                    })
-                .Select(result => new
-                {
-                    Date = result.Date,
-                    TotalSales = result.TotalSales
-                })
                 .ToList();
+            var past7DaysSales = past7Days
+        .GroupJoin(_context.Offer.Where(o => o.IsPaid == 1),
+            date => date.Date,
+            order => order.CreatedAt.Value.Date,
+            (date, orders) => new
+            {
+                Date = date,
+                TotalSales = orders.Sum(o => o.Total)
+            })
+        .Select(result => new
+        {
+            Date = result.Date,
+            TotalSales = result.TotalSales
+        })
+        .ToList();
+
 
             return Ok(past7DaysSales);
         }
@@ -180,7 +183,7 @@ namespace ArtGallery.Controllers
             try
             {
                 var offers = await _context.Offer
-                    .Where(o => o.Status == 1)
+                    .Where(o => o.IsPaid == 1)
                     .ToListAsync();
                 var totalRevenue = offers.Sum(o => o.Total);
 
@@ -193,59 +196,22 @@ namespace ArtGallery.Controllers
         }
 
         // GET: api/Offer/TotalOfferToday
-        [HttpGet("list-order-today")]
-       
-        public async Task<IActionResult> GetListOfferToDay()
+        [HttpGet("total-offer-today")]
+        public async Task<IActionResult> GetTotalOfferToday()
         {
             try
             {
-                DateTime today = DateTime.Now.Date;
-                List<Offer> offers = await _context.Offer.Include(o => o.User).Include(o => o.OfferArtWorks).ThenInclude(o => o.ArtWork).Where(o => o.CreatedAt.Value.Date == today).OrderByDescending(p => p.CreatedAt).ToListAsync();
-                List<OfferDTO> result = new List<OfferDTO>();
-                foreach (var offer in offers)
-                {
-                    result.Add(new OfferDTO
-                    {
-                        Id = offer.Id,
-                        OfferCode = offer.OfferCode,
-                        UserId = offer.UserId,
-                        UserName = offer.User.Fullname,
-                        ToTal = offer.Total,
-                        Status = offer.Status,
-                        ArtWorkNames = offer.OfferArtWorks.Select(oaw => oaw.ArtWork.Name).ToList(),
-                        createdAt = offer.CreatedAt,
-                        updatedAt = offer.UpdatedAt,
-                        deletedAt = offer.DeletedAt,
-                    });
-                }
+                DateTime today = DateTime.Today;
+                var totalOfferToday = await _context.Offer
+                    .Where(o => o.CreatedAt.HasValue && o.CreatedAt.Value.Date == today)
+                    .CountAsync();
 
-                return Ok(result);
-
+                return Ok(new { totalOfferToday });
             }
             catch (Exception ex)
             {
-                var response = new GeneralService
-                {
-                    Success = false,
-                    StatusCode = 400,
-                    Message = ex.Message,
-                    Data = ""
-                };
-
-                return BadRequest(response);
+                return BadRequest(new { message = ex.Message });
             }
-        }     
-
-        [HttpGet("total-cusAndSta")]  
-        public async Task<IActionResult> GetUserCount()
-        {
-            var userCount = new
-            {
-                TotalUser = await _context.Users.Where(u => u.Role.Equals("User")).CountAsync(),
-                TotalArtist = await _context.Users.Where(u => u.Role.Equals("Artist")).CountAsync(),
-            };
-
-            return Ok(userCount);
         }
 
         [HttpGet("list-offer-today")]
@@ -273,7 +239,7 @@ namespace ArtGallery.Controllers
                         createdAt = offer.CreatedAt,
                         updatedAt = offer.UpdatedAt,
                         deletedAt = offer.DeletedAt,
-                    });
+                    }) ;
                 }
 
                 return Ok(result);
@@ -291,20 +257,6 @@ namespace ArtGallery.Controllers
 
                 return BadRequest(response);
             }
-        [HttpGet("order-overview")]
-        public async Task<IActionResult> GetOfferOverview()
-        {
-            var totalOffers = new
-            {
-                DailyRevenue = await _context.Offer
-                    .Where(offer => offer.CreatedAt.Value.Date == DateTime.Today)
-                    .SumAsync(offer => offer.Total),
-                MonthlyRevenue = await _context.Offer
-                    .Where(offer => offer.CreatedAt.Value.Month == DateTime.Today.Month && offer.CreatedAt.Value.Year == DateTime.Today.Year)
-                    .SumAsync(offer => offer.Total)
-            };
-
-            return Ok(totalOffers);
         }
 
     }

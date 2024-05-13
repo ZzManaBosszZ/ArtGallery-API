@@ -21,9 +21,5 @@ namespace ArtGallery.Models.Users
         [MaxLength(250)]
         [MinLength(6)]
         public string password { get; set; }
-
-        [Required(ErrorMessage = "Please enter phone")]
-        [RegularExpression(@"^\d{10,15}$", ErrorMessage = "Phone number is not valid")]
-        public string phone { get; set; }
     }
 }

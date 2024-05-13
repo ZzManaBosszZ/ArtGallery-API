@@ -18,7 +18,7 @@ namespace ArtGallery.Entities
 
         public string Role { get; set; } = null!;
 
-        public string Address { get; set; } = null!;
+        public string? Address { get; set; }
 
         //public int Status { get; set; }
 
