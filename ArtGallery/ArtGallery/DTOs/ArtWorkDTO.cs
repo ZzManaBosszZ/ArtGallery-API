@@ -1,4 +1,5 @@
 ﻿using ArtGallery.Entities;
+using ArtGallery.Models.Artist;
 using ArtGallery.Models.SchoolOfArt;
 
 namespace ArtGallery.DTOs
@@ -6,7 +7,7 @@ namespace ArtGallery.DTOs
     public class ArtWorkDTO : AbstractDTO<ArtWorkDTO>
     {
         public string Name { get; set; } = null!;
-        public string ArtWorkImage { get; set; } = null!;
+        public string ArtWorkImage { get; set; } = null!; 
         public string Medium { get; set; } = null!;
         public string Materials { get; set; } = null!;
         public string Size { get; set; } = null!;
@@ -19,6 +20,9 @@ namespace ArtGallery.DTOs
         public decimal Price { get; set; }
         public int FavoriteCount { get; set; }
         public List<SchoolOfArtResponse>? SchoolOfArts { get; set; }
+
+        public List<ArtistResponse>? Artists { get; set; }
+
 
     }
 }

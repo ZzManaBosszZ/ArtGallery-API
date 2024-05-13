@@ -16,6 +16,8 @@ using Microsoft.AspNetCore.Authorization;
 using System.Net.Http.Headers;
 using ArtGallery.Models.SchoolOfArt;
 using ArtGallery.Service.Artists;
+using PayPal.v1.CustomerDisputes;
+using ArtGallery.Models.Artist;
 
 namespace ArtGallery.Controllers
 {
@@ -37,13 +39,13 @@ namespace ArtGallery.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllArtWorks(
         [FromQuery] string search = null,
-        [FromQuery] List<int> schoolOfArtsIds = null
-)
+        [FromQuery] List<int> schoolOfArtsIds = null)
         {
             try
             {
                 var query = _context.ArtWork
                     .Include(a => a.ArtWorkSchoolOfArts).ThenInclude(a => a.SchoolOfArt)
+                    .Include(a => a.ArtistArtWorks).ThenInclude(a => a.Artist)
                     .Where(a => a.DeletedAt == null);
 
                 if (!string.IsNullOrEmpty(search))
@@ -82,6 +84,7 @@ namespace ArtGallery.Controllers
                         deletedAt = aw.DeletedAt,
                     };
                     var schoolOfArts = new List<SchoolOfArtResponse>();
+                    var Artist = new List<ArtistResponse>();
                     foreach (var item in aw.ArtWorkSchoolOfArts)
                     {
                         var schoolOfArt = new SchoolOfArtResponse
@@ -93,6 +96,19 @@ namespace ArtGallery.Controllers
 
                     }
                     artworkDTO.SchoolOfArts = schoolOfArts;
+                    result.Add(artworkDTO);
+                  
+                    foreach (var item in aw.ArtistArtWorks)
+                    {
+                        var Artistss = new ArtistResponse
+                        {
+                            Id = item.Id,
+                            Name = item.Artist.Name,
+                        };
+                        Artist.Add(Artistss);
+
+                    }
+                    artworkDTO.Artists = Artist;
                     result.Add(artworkDTO);
                 }
                 return Ok(result);
@@ -120,9 +136,11 @@ namespace ArtGallery.Controllers
             try
             {
                 var artWork = await _context.ArtWork
-     .Include(a => a.ArtWorkSchoolOfArts)
+         .Include(a => a.ArtistArtWorks)
+         .ThenInclude(a => a.Artist)
+         .Include(a => a.ArtWorkSchoolOfArts)
          .ThenInclude(a => a.SchoolOfArt)
-     .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
+         .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
 
                 if (artWork != null)
                 {
@@ -130,6 +148,7 @@ namespace ArtGallery.Controllers
                     {
                         Id = artWork.Id,
                         Name = artWork.Name,
+                        
                         ArtWorkImage = artWork.ArtWorkImage,
                         Medium = artWork.Medium,
                         Materials = artWork.Materials,
@@ -147,6 +166,7 @@ namespace ArtGallery.Controllers
                     };
 
                     var schoolOfArts = new List<SchoolOfArtResponse>();
+                    var artist = new List<ArtistResponse>();
                     foreach (var item in artWork.ArtWorkSchoolOfArts)
                     {
                         var schoolOfArtResponse = new SchoolOfArtResponse
@@ -157,6 +177,18 @@ namespace ArtGallery.Controllers
                         schoolOfArts.Add(schoolOfArtResponse);
                     }
                     artWorkDto.SchoolOfArts = schoolOfArts;
+
+                    foreach (var item in artWork.ArtistArtWorks)
+                    {
+                        var artistResponse = new ArtistResponse
+                        {
+                            Id = item.Artist.Id,
+                            Name = item.Artist.Name,
+
+                        };
+                        artist.Add(artistResponse);
+                    }
+                    artWorkDto.Artists = artist;
 
                     return Ok(artWorkDto);
                 }
@@ -338,6 +370,17 @@ namespace ArtGallery.Controllers
                         };
 
                         _context.ArtWorkSchoolOfArt.Add(ArtworkSchoolOfArt);
+
+                    }
+                    foreach (var artistId in model.ArtistId)
+                    {
+                        var ArtistArtWorks = new ArtistArtWork
+                        {
+                            ArtWorkId = artWork.Id,
+                            ArtistId = artistId,
+                        };
+
+                        _context.ArtistArtWork.Add(ArtistArtWorks);
 
                     }
 

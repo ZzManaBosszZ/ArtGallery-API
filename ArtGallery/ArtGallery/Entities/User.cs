@@ -18,6 +18,8 @@ namespace ArtGallery.Entities
 
         public string Role { get; set; } = null!;
 
+        public string Address { get; set; } = null!;
+
         //public int Status { get; set; }
 
         public string? ResetToken { get; set; }

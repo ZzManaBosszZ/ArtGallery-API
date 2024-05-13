@@ -79,6 +79,7 @@ namespace ArtGallery.Controllers
                         Name = a.Name,
                         Biography = a.Biography,
                         Image = a.Image,
+                        Description = a.Description,    
                         createdAt = a.CreatedAt,
                         updatedAt = a.UpdatedAt,
                         deletedAt = a.DeletedAt,
@@ -118,8 +119,9 @@ namespace ArtGallery.Controllers
 
                         };
                         artWorks.Add(artWork);
-                        artistDTO.ArtWork = artWorks;
+                       
                     }
+                    artistDTO.ArtWork = artWorks;
                     result.Add(artistDTO);
                 }
 
@@ -160,6 +162,7 @@ namespace ArtGallery.Controllers
                         Name = a.Name,
                         Biography = a.Biography,
                         Image = a.Image,
+                        Description = a.Description,
                         createdAt = a.CreatedAt,
                         updatedAt = a.UpdatedAt,
                         deletedAt = a.DeletedAt,
@@ -343,6 +346,7 @@ namespace ArtGallery.Controllers
                     {
                         Id = model.Id,
                         Name = model.Name,
+                        Description = model.Description,
                         CreatedAt = existingArtist.CreatedAt,
                         UpdatedAt = DateTime.Now,
                         DeletedAt = null,

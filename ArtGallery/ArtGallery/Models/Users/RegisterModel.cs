@@ -4,6 +4,10 @@ namespace ArtGallery.Models.Users
 {
     public class RegisterModel
     {
+        [Required(ErrorMessage = "Please enter phone")]
+        [RegularExpression(@"^\d{10,15}$", ErrorMessage = "Phone number is not valid")]
+        public string phone { get; set; }
+
         [Required(ErrorMessage = "Please enter fullname")]
         [MinLength(3, ErrorMessage = "Enter at least 3 characters")]
         [MaxLength(255, ErrorMessage = "Enter up to 255 characters")]

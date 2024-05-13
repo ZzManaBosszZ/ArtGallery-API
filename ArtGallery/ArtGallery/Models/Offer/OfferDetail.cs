@@ -11,6 +11,9 @@
         public string UserName { get; set; }
         public decimal OfferPrice { get; set; }
         public decimal ToTal { get; set; }
+        public int IsPaid { get; set; }
+
+        public string Address { get; set; }
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public DateTime? DeletedAt { get; set; }
