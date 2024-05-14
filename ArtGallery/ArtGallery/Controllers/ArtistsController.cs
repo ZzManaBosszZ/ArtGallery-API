@@ -38,15 +38,15 @@ namespace ArtGallery.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Super Admin")]
-        public async Task<IActionResult> GetArtistAll([FromQuery] string search = null/*,[FromQuery] List<int> artWorkIds = null*/,[FromQuery] List<int> schoolOfArtsIds = null)
+        //[Authorize(Roles = "Super Admin"]
+        public async Task<IActionResult> GetArtistAll([FromQuery] string search = null, [FromQuery] List<int> artWorkIds = null, [FromQuery] List<int> schoolOfArtsIds = null)
         {
             try
             {
                 // Bắt đầu với truy vấn gốc để lấy danh sách nghệ sĩ
                 var query = _context.Artist
                     .Include(a => a.ArtistSchoolOfArts).ThenInclude(a => a.SchoolOfArt)
-                    //.Include(a => a.ArtistArtWorks).ThenInclude(a => a.ArtWork)
+                    .Include(a => a.ArtistArtWorks).ThenInclude(a => a.ArtWork)
                     .Where(a => a.DeletedAt == null);
 
                 // Áp dụng bộ lọc tìm kiếm
@@ -61,11 +61,11 @@ namespace ArtGallery.Controllers
                     query = query.Where(a => a.ArtistSchoolOfArts.Any(a1 => schoolOfArtsIds.Contains(a1.SchoolOfArtId)));
                 }
 
-                //// Áp dụng bộ lọc ArtWorkIds
-                //if (artWorkIds != null && artWorkIds.Any())
-                //{
-                //    query = query.Where(a => a.ArtistArtWorks.Any(aw => artWorkIds.Contains(aw.ArtWorkId)));
-                //}
+                // Áp dụng bộ lọc ArtWorkIds
+                if (artWorkIds != null && artWorkIds.Any())
+                {
+                    query = query.Where(a => a.ArtistArtWorks.Any(aw => artWorkIds.Contains(aw.ArtWorkId)));
+                }
                 List<Artist> artist = await query.OrderByDescending(m => m.Id).ToListAsync();
                 List<ArtistDTO> result = new List<ArtistDTO>();
 
@@ -96,30 +96,30 @@ namespace ArtGallery.Controllers
                         schoolOfArts.Add(schoolOfArt);
                     }
                     artistDTO.SchoolOfArts = schoolOfArts;
-                    //foreach (var item in a.ArtistArtWorks)
-                    //{
-                    //    var artWork = new ArtWorkResponse
-                    //    {
-                    //        Id = item.Id,
-                    //        Name = item.ArtWork.Name,
-                    //        ArtWorkImage = item.ArtWork.ArtWorkImage,
-                    //        Medium = item.ArtWork.Medium,
-                    //        Materials = item.ArtWork.Materials,
-                    //        Size = item.ArtWork.Size,
-                    //        Condition = item.ArtWork.Condition,
-                    //        Signature = item.ArtWork.Signature,
-                    //        Rarity = item.ArtWork.Rarity,
-                    //        CertificateOfAuthenticity = item.ArtWork.CertificateOfAuthenticity,
-                    //        Frame = item.ArtWork.Frame,
-                    //        Series = item.ArtWork.Series,
-                    //        Price = item.ArtWork.Price,
-                    //        FavoriteCount = item.ArtWork.FavoriteCount,
+                    foreach (var item in a.ArtistArtWorks)
+                    {
+                        var artWork = new ArtWorkResponse
+                        {
+                            Id = item.Id,
+                            Name = item.ArtWork.Name,
+                            ArtWorkImage = item.ArtWork.ArtWorkImage,
+                            Medium = item.ArtWork.Medium,
+                            Materials = item.ArtWork.Materials,
+                            Size = item.ArtWork.Size,
+                            Condition = item.ArtWork.Condition,
+                            Signature = item.ArtWork.Signature,
+                            Rarity = item.ArtWork.Rarity,
+                            CertificateOfAuthenticity = item.ArtWork.CertificateOfAuthenticity,
+                            Frame = item.ArtWork.Frame,
+                            Series = item.ArtWork.Series,
+                            Price = item.ArtWork.Price,
+                            FavoriteCount = item.ArtWork.FavoriteCount,
 
-                    //    };
-                    //    artWorks.Add(artWork);
-                       
-                    //}
-                    //artistDTO.ArtWork = artWorks;
+                        };
+                        artWorks.Add(artWork);
+
+                    }
+                    artistDTO.ArtWork = artWorks;
                     result.Add(artistDTO);
                 }
 
@@ -142,7 +142,7 @@ namespace ArtGallery.Controllers
 
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "Super Admin")]
+        //[Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> GetArtistById(int id)
         {
             try

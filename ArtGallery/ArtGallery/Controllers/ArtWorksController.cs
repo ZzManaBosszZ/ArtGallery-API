@@ -37,9 +37,134 @@ namespace ArtGallery.Controllers
             _artistService = artistService;
         }
 
+        [HttpGet("GetAllArtWorksArtist")]
+        [Authorize]
+        public async Task<IActionResult> GetAllArtWorksUser(
+    [FromQuery] string search = null,
+    [FromQuery] List<int> schoolOfArtsIds = null)
+        {
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+
+            if (!identity.IsAuthenticated)
+            {
+                return Unauthorized(new GeneralService
+                {
+                    Success = false,
+                    StatusCode = 401,
+                    Message = "Not Authorized",
+                    Data = ""
+                });
+            }
+
+            try
+            {
+                var userClaims = identity.Claims;
+                var userId = userClaims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized(new GeneralService
+                    {
+                        Success = false,
+                        StatusCode = 401,
+                        Message = "Not Authorized",
+                        Data = ""
+                    });
+                }
+
+                var followedArtistIds = await _context.Follow
+                    .Where(f => f.UserId == Convert.ToInt32(userId))
+                    .Select(f => f.ArtistId)
+                    .ToListAsync();
+
+                var query = _context.ArtWork
+                    .Include(a => a.ArtWorkSchoolOfArts).ThenInclude(a => a.SchoolOfArt)
+                    .Include(a => a.ArtistArtWorks).ThenInclude(a => a.Artist)
+                    .Where(a => a.DeletedAt == null && a.ArtistArtWorks.Any(aa => followedArtistIds.Contains(aa.ArtistId)));
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    query = query.Where(a => a.Name.Contains(search));
+                }
+
+                if (schoolOfArtsIds != null && schoolOfArtsIds.Any())
+                {
+                    query = query.Where(a => a.ArtWorkSchoolOfArts.Any(a1 => schoolOfArtsIds.Contains(a1.SchoolOfArtId)));
+                }
+
+                List<ArtWork> artworks = await query.OrderByDescending(m => m.Id).ToListAsync();
+                List<ArtWorkDTO> result = new List<ArtWorkDTO>();
+
+                foreach (ArtWork aw in artworks)
+                {
+                    var artworkDTO = new ArtWorkDTO
+                    {
+                        Id = aw.Id,
+                        Name = aw.Name,
+                        ArtWorkImage = aw.ArtWorkImage,
+                        Medium = aw.Medium,
+                        Materials = aw.Materials,
+                        Size = aw.Size,
+                        Condition = aw.Condition,
+                        Signature = aw.Signature,
+                        Rarity = aw.Rarity,
+                        CertificateOfAuthenticity = aw.CertificateOfAuthenticity,
+                        Frame = aw.Frame,
+                        Series = aw.Series,
+                        Price = aw.Price,
+                        FavoriteCount = aw.FavoriteCount,
+                        createdAt = aw.CreatedAt,
+                        updatedAt = aw.UpdatedAt,
+                        deletedAt = aw.DeletedAt,
+                    };
+
+                    var schoolOfArts = new List<SchoolOfArtResponse>();
+                    var artists = new List<ArtistResponse>();
+
+                    foreach (var item in aw.ArtWorkSchoolOfArts)
+                    {
+                        var schoolOfArt = new SchoolOfArtResponse
+                        {
+                            Id = item.Id,
+                            Name = item.SchoolOfArt.Name,
+                        };
+                        schoolOfArts.Add(schoolOfArt);
+                    }
+
+                    foreach (var item in aw.ArtistArtWorks)
+                    {
+                        var artist = new ArtistResponse
+                        {
+                            Id = item.Id,
+                            Name = item.Artist.Name,
+                        };
+                        artists.Add(artist);
+                    }
+
+                    artworkDTO.SchoolOfArts = schoolOfArts;
+                    artworkDTO.Artists = artists;
+
+                    result.Add(artworkDTO);
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                var response = new GeneralService
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    Message = ex.Message,
+                    Data = ""
+                };
+
+                return BadRequest(response);
+            }
+        }
+
         // GET: api/ArtWorks
         [HttpGet]
-        [Authorize(Roles = "Super Admin, Artist")]
         public async Task<IActionResult> GetAllArtWorks(
         [FromQuery] string search = null,
         [FromQuery] List<int> schoolOfArtsIds = null)
@@ -136,7 +261,7 @@ namespace ArtGallery.Controllers
 
         // GET: api/ArtWorks/5
         [HttpGet("{id}")]
-        [Authorize(Roles = "Super Admin, Artist")]
+        //[Authorize(Roles = "Super Admin, Artist")]
         public async Task<ActionResult> GetArtWorkById(int id)
         {
             try
