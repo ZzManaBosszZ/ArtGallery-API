@@ -37,6 +37,7 @@ namespace ArtGallery.Controllers
 
         // GET: api/ArtWorks
         [HttpGet]
+        [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> GetAllArtWorks(
         [FromQuery] string search = null,
         [FromQuery] List<int> schoolOfArtsIds = null)
@@ -130,6 +131,7 @@ namespace ArtGallery.Controllers
 
         // GET: api/ArtWorks/5
         [HttpGet("{id}")]
+        [Authorize(Roles = "Super Admin")]
         public async Task<ActionResult> GetArtWorkById(int id)
         {
             try
@@ -220,6 +222,7 @@ namespace ArtGallery.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 
         [HttpPut("edit")]
+        [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> EditArtWork([FromForm] EditArtWorkModel model)
         {
             if (ModelState.IsValid)
@@ -320,7 +323,7 @@ namespace ArtGallery.Controllers
         // POST: api/ArtWorks
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("create")]
-        //[Authorize(Roles = "Super Admin, Shopping Center Manager Staff")]
+        [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> CreateArtWork([FromForm] CreateArtWorkModel model)
         {
             if (ModelState.IsValid)
@@ -431,6 +434,7 @@ namespace ArtGallery.Controllers
         }
         // DELETE: api/ArtWorks/5
         [HttpDelete("delete")]
+        [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> DeleteArtist(List<int> ids)
         {
             try

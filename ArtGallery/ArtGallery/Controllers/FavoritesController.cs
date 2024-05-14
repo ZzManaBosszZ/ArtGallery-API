@@ -26,7 +26,7 @@ namespace ArtGallery.Controllers
         }
 
         [HttpGet("get-by-user")]
-        //[Authorize]
+        [Authorize]
         public async Task<IActionResult> GetByUser()
         {
             var identity = HttpContext.User.Identity as ClaimsIdentity;
@@ -93,7 +93,7 @@ namespace ArtGallery.Controllers
         // POST: api/Favorites
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("addtofavorite")]
-        //[Authorize]
+        [Authorize]
         public async Task<IActionResult> addToFavorite(CreateFavorite model)
         {
             var identity = HttpContext.User.Identity as ClaimsIdentity;
