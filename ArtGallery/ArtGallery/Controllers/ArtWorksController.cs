@@ -20,6 +20,8 @@ using PayPal.v1.CustomerDisputes;
 using ArtGallery.Models.Artist;
 using ArtGallery.Models.Offer;
 using System.Security.Claims;
+using ArtGallery.Helper;
+using ArtGallery.Service.Email;
 
 namespace ArtGallery.Controllers
 {
@@ -29,12 +31,14 @@ namespace ArtGallery.Controllers
     {
         private readonly ArtGalleryApiContext _context;
         private readonly IImgService _imgService;
+        private readonly IEmailService _emailService;
         private readonly IArtistService _artistService;
-        public ArtWorksController(ArtGalleryApiContext context, IImgService imgService, IArtistService artistService)
+        public ArtWorksController(ArtGalleryApiContext context, IImgService imgService, IArtistService artistService, IEmailService emailService)
         {
             _context = context;
             _imgService = imgService;
             _artistService = artistService;
+            _emailService = emailService;
         }
 
         // GET: api/ArtWorks
@@ -342,7 +346,7 @@ namespace ArtGallery.Controllers
         // POST: api/ArtWorks
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("create")]
-        [Authorize(Roles = "Super Admin, Artist")]
+        [Authorize/*(Roles = "Super Admin, Artist")*/]
         public async Task<IActionResult> CreateArtWork([FromForm] CreateArtWorkModel model)
         {
             if (ModelState.IsValid)
@@ -414,8 +418,39 @@ namespace ArtGallery.Controllers
                         _context.ArtistArtWork.Add(ArtistArtWorks);
 
                     }
-
                     await _context.SaveChangesAsync();
+                    foreach (var artistId in userArtists)
+                    {
+                        var followers = await _context.Follow
+                            .Where(f => f.ArtistId == artistId)
+                            .Select(f => f.UserId)
+                            .ToListAsync();
+
+                        var artistName = await _context.Artist
+                            .Where(a => a.Id == artistId)
+                            .Select(a => a.Name)
+                            .FirstOrDefaultAsync();
+
+                        var emailBody = $"Nghệ sĩ {artistName} vừa đăng một tác phẩm mới: {model.Name}. Xem chi tiết tại đây: {imageUrl}";
+
+                        foreach (var followerId in followers)
+                        {
+                            var followerEmail = await _context.Users
+                        .Where(u => u.Id == followerId)
+                        .Select(u => u.Email)
+                        .FirstOrDefaultAsync();
+
+                            var mailRequest = new Mailrequest
+                            {
+                                ToEmail = followerEmail,
+                                Subject = "Thông báo: Tác phẩm mới từ nghệ sĩ",
+                                Body = emailBody
+                            };
+
+                            await _emailService.SendEmailAsync(mailRequest);
+                        }
+                    }
+
                     return Created($"get-by-id?id={artWork.Id}", new ArtWorkDTO
                     {
                         Id = artWork.Id,
