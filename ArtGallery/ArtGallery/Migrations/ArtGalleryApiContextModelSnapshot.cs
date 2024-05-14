@@ -137,6 +137,9 @@ namespace ArtGallery.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("FollowCount")
+                        .HasColumnType("int");
+
                     b.Property<string>("Image")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -229,6 +232,38 @@ namespace ArtGallery.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Favorite");
+                });
+
+            modelBuilder.Entity("ArtGallery.Entities.Follow", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArtistId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArtistId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Follow");
                 });
 
             modelBuilder.Entity("ArtGallery.Entities.Offer", b =>
@@ -511,6 +546,25 @@ namespace ArtGallery.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ArtGallery.Entities.Follow", b =>
+                {
+                    b.HasOne("ArtGallery.Entities.Artist", "Artist")
+                        .WithMany("Follow")
+                        .HasForeignKey("ArtistId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ArtGallery.Entities.User", "User")
+                        .WithMany("Follow")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Artist");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ArtGallery.Entities.Offer", b =>
                 {
                     b.HasOne("ArtGallery.Entities.ArtWork", null)
@@ -583,6 +637,8 @@ namespace ArtGallery.Migrations
 
                     b.Navigation("ArtistSchoolOfArts");
 
+                    b.Navigation("Follow");
+
                     b.Navigation("UserArtists");
                 });
 
@@ -594,6 +650,8 @@ namespace ArtGallery.Migrations
             modelBuilder.Entity("ArtGallery.Entities.User", b =>
                 {
                     b.Navigation("Favorites");
+
+                    b.Navigation("Follow");
 
                     b.Navigation("Offers");
                 });

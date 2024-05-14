@@ -6,26 +6,25 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ArtGallery.Entities;
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
-using ArtGallery.Models.GeneralService;
 using ArtGallery.DTOs;
 using ArtGallery.Models.Favorite;
+using ArtGallery.Models.GeneralService;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ArtGallery.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class FavoritesController : ControllerBase
+    public class FollowsController : ControllerBase
     {
         private readonly ArtGalleryApiContext _context;
 
-        public FavoritesController(ArtGalleryApiContext context)
+        public FollowsController(ArtGalleryApiContext context)
         {
             _context = context;
         }
-
-        [HttpGet("get-by-user")]
+        [HttpGet("get-by-user-follow")]
         //[Authorize]
         public async Task<IActionResult> GetByUser()
         {
@@ -34,10 +33,11 @@ namespace ArtGallery.Controllers
             if (!identity.IsAuthenticated)
             {
                 return Unauthorized(new GeneralService
-                {   Success = false,
+                {
+                    Success = false,
                     StatusCode = 401,
                     Message = "Not Authorized",
-                    Data = "" 
+                    Data = ""
                 });
             }
             try
@@ -50,24 +50,25 @@ namespace ArtGallery.Controllers
 
                 if (user == null)
                 {
-                    return Unauthorized(new GeneralService 
-                    {   Success = false,
+                    return Unauthorized(new GeneralService
+                    {
+                        Success = false,
                         StatusCode = 401,
                         Message = "Not Authorized",
-                        Data = "" 
+                        Data = ""
                     });
                 }
 
-                List<Favorite> favorites = await _context.Favorite.Include(f => f.ArtWork).Where(f => f.UserId == user.Id).OrderByDescending(p => p.Id).ToListAsync();
-                List<FavoriteDTO> result = new List<FavoriteDTO>();
-                foreach (var item in favorites)
+                List<Follow> follows = await _context.Follow.Include(f => f.Artist).Where(f => f.UserId == user.Id).OrderByDescending(p => p.Id).ToListAsync();
+                List<FollowDTO> result = new List<FollowDTO>();
+                foreach (var item in follows)
                 {
-                    result.Add(new FavoriteDTO
+                    result.Add(new FollowDTO
                     {
                         Id = item.Id,
-                        ArtWorkImage=item.ArtWork.ArtWorkImage,
-                        ArtWorkName=item.ArtWork.Name,
-                        ArtWorkId=item.ArtWork.Id,  
+                        ArtistImage = item.Artist.Image,
+                        ArtistName = item.Artist.Name,
+                        ArtistId = item.Artist.Id,
                         UserId = item.UserId,
                         createdAt = item.CreatedAt,
                         updatedAt = item.UpdatedAt,
@@ -89,12 +90,12 @@ namespace ArtGallery.Controllers
                 return BadRequest(response);
             }
         }
+        
 
-        // POST: api/Favorites
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost("addtofavorite")]
+
+        [HttpPost("addtofollow")]
         [Authorize]
-        public async Task<IActionResult> addToFavorite(CreateFavorite model)
+        public async Task<IActionResult> AddToFollow(CreateFavoriteArtist model)
         {
             var identity = HttpContext.User.Identity as ClaimsIdentity;
 
@@ -108,92 +109,110 @@ namespace ArtGallery.Controllers
                     Data = ""
                 });
             }
+
             try
             {
-                var userClaims = identity.Claims;
-                var userId = userClaims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-
-                var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Id == Convert.ToInt32(userId));
-
-                if (user == null)
-                {
-                    return Unauthorized(new GeneralService
-                    { Success = false,
-                        StatusCode = 401,
-                        Message = "Not Authorized",
-                        Data = "" });
-                }
-
-                var existingFavorite = await _context.Favorite
-                    .FirstOrDefaultAsync(f => f.UserId == user.Id && f.ArtWorkId == model.ArtWorkId);
-
-                if (existingFavorite != null)
+                if (model.ArtistId <= 0)
                 {
                     return BadRequest(new GeneralService
                     {
                         Success = false,
-                        StatusCode = 401,
-                        Message = "The ArtWork already exists in the favorites list.",
+                        StatusCode = 400,
+                        Message = "Invalid ArtistId",
                         Data = ""
                     });
                 }
 
-                Favorite favorite = new Favorite
+                var userClaims = identity.Claims;
+                var userId = userClaims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == Convert.ToInt32(userId));
+
+                if (user == null)
+                {
+                    return Unauthorized(new GeneralService
+                    {
+                        Success = false,
+                        StatusCode = 401,
+                        Message = "Not Authorized",
+                        Data = ""
+                    });
+                }
+
+                var existingFollow = await _context.Follow
+                    .FirstOrDefaultAsync(f => f.UserId == user.Id && f.ArtistId == model.ArtistId);
+
+                if (existingFollow != null)
+                {
+                    return BadRequest(new GeneralService
+                    {
+                        Success = false,
+                        StatusCode = 400,
+                        Message = "The Artist already exists in the follow list.",
+                        Data = ""
+                    });
+                }
+
+                var follow = new Follow
                 {
                     UserId = user.Id,
-                    ArtWorkId = model.ArtWorkId,
+                    ArtistId = model.ArtistId,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now,
                     DeletedAt = null,
                 };
 
-                _context.Favorite.Add(favorite);
+                _context.Follow.Add(follow);
                 await _context.SaveChangesAsync();
 
-                var artWork = await _context.ArtWork.FindAsync(model.ArtWorkId);
-                artWork.FavoriteCount = await _context.Favorite.Where(f => f.ArtWorkId == artWork.Id).CountAsync();
-
-                await _context.SaveChangesAsync();
-
-                return Created($"get-by-id?id={favorite.Id}", new FavoriteDTO
+                var artist = await _context.Artist.FindAsync(model.ArtistId);
+                if (artist != null)
                 {
-                    Id = favorite.Id,
-                    ArtWorkId = model.ArtWorkId,
-                    UserId = user.Id,
-                    createdAt = favorite.CreatedAt,
-                    updatedAt = favorite.UpdatedAt,
-                    deletedAt = favorite.DeletedAt,
-                });
+                    artist.FollowCount = await _context.Follow.CountAsync(f => f.ArtistId == model.ArtistId);
+                    await _context.SaveChangesAsync();
+                }
 
+                return Created($"get-by-id?id={follow.Id}", new FollowDTO
+                {
+                    Id = follow.Id,
+                    ArtistId = model.ArtistId,
+                    UserId = user.Id,
+                    createdAt = follow.CreatedAt,
+                    updatedAt = follow.UpdatedAt,
+                    deletedAt = follow.DeletedAt,
+                });
             }
             catch (Exception ex)
             {
                 var response = new GeneralService
                 {
                     Success = false,
-                    StatusCode = 400,
-                    Message = ex.Message,
+                    StatusCode = 500,
+                    Message = "An error occurred while processing the request.",
                     Data = ""
                 };
 
-                return BadRequest(response);
+                // Log the exception for troubleshooting
+                // Logger.LogError(ex, "Error occurred in AddToFollow action");
+
+                return StatusCode(500, response);
             }
         }
 
-        [HttpDelete("removefavorite")]
+        [HttpDelete("removefollow")]
         [Authorize]
-        public async Task<IActionResult> removeFromFavorite(int id)
+        public async Task<IActionResult> removeFromFollow(int id)
         {
             var identity = HttpContext.User.Identity as ClaimsIdentity;
 
             if (!identity.IsAuthenticated)
             {
                 return Unauthorized(new GeneralService
-                { Success = false,
+                {
+                    Success = false,
                     StatusCode = 401,
                     Message = "Not Authorized",
-                    Data = "" 
+                    Data = ""
                 });
             }
             try
@@ -206,39 +225,42 @@ namespace ArtGallery.Controllers
                 if (user == null)
                 {
                     return Unauthorized(new GeneralService
-                    { Success = false,
+                    {
+                        Success = false,
                         StatusCode = 401,
                         Message = "Not Authorized",
-                        Data = "" 
+                        Data = ""
                     });
                 }
 
-                var favorite = await _context.Favorite
+                var follow = await _context.Follow
                     .FirstOrDefaultAsync(f => f.UserId == user.Id && f.Id == id);
 
-                if (favorite == null)
+                if (follow == null)
                 {
-                    return BadRequest(new GeneralService 
-                    { Success = false,
+                    return BadRequest(new GeneralService
+                    {
+                        Success = false,
                         StatusCode = 400,
-                        Message = "The ArtWork does not exist in the favorites list.",
-                        Data = "" 
+                        Message = "The Artist does not exist in the follow list.",
+                        Data = ""
                     });
                 }
 
-                _context.Favorite.Remove(favorite);
+                _context.Follow.Remove(follow);
                 await _context.SaveChangesAsync();
 
-                var artWork = await _context.ArtWork.FindAsync(favorite.ArtWorkId);
-                artWork.FavoriteCount = await _context.Favorite.Where(f => f.ArtWorkId == artWork.Id).CountAsync();
+                var artist = await _context.Artist.FindAsync(follow.ArtistId);
+                artist.FollowCount = await _context.Follow.Where(f => f.ArtistId == artist.Id).CountAsync();
 
                 await _context.SaveChangesAsync();
 
-                return Ok(new GeneralService 
-                {   Success = true, 
+                return Ok(new GeneralService
+                {
+                    Success = true,
                     StatusCode = 200,
                     Message = "removed from favorites list",
-                    Data = "" 
+                    Data = ""
                 });
 
             }
@@ -255,10 +277,9 @@ namespace ArtGallery.Controllers
                 return BadRequest(response);
             }
         }
-       
-        private bool FavoriteExists(int id)
+        private bool FollowExists(int id)
         {
-            return _context.Favorite.Any(e => e.Id == id);
+            return _context.Follow.Any(e => e.Id == id);
         }
     }
 }
