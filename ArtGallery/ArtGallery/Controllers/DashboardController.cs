@@ -7,7 +7,7 @@ using ArtGallery.Service.IMG;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Org.BouncyCastle.Security;
+using System.Security.Claims;
 
 namespace ArtGallery.Controllers
 {
@@ -164,7 +164,7 @@ namespace ArtGallery.Controllers
                 .Select(offset => today.AddDays(-offset))
                 .ToList();
             var past7DaysSales = past7Days
-        .GroupJoin(_context.Offer.Where(o => o.IsPaid == 1),
+        .GroupJoin(_context.Offer.Where(o => o.IsPaid == 1), 
             date => date.Date,
             order => order.CreatedAt.Value.Date,
             (date, orders) => new
@@ -268,6 +268,8 @@ namespace ArtGallery.Controllers
                 return BadRequest(response);
             }
         }
+
+        
 
     }
 }

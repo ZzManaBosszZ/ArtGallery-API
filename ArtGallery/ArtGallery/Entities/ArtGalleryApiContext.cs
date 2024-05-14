@@ -27,7 +27,11 @@ namespace ArtGallery.Entities
         public DbSet<ArtGallery.Entities.ArtWorkSchoolOfArt> ArtWorkSchoolOfArt { get; set; } = default!;
         public DbSet<ArtGallery.Entities.OfferArtWork> OfferArtWork { get; set; } = default!;
         public DbSet<ArtGallery.Entities.User> Users { get; set; }
+        
 
-     
+        public DbSet<ArtGallery.Entities.UserArtist> UserArtist { get; set; } = default!;
+        public DbSet<ArtGallery.Entities.Follow> Follow { get; set; } = default!;
+
+
     }
 }

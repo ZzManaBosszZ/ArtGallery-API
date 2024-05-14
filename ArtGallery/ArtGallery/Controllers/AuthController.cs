@@ -474,7 +474,7 @@ namespace ArtGallery.Controllers
 
         [HttpGet]
         [Route("user")]
-        //[Authorize(Roles = "Super Admin")]
+        [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> GetUserAll(
         [FromQuery] string search = null)
         {
@@ -497,12 +497,12 @@ namespace ArtGallery.Controllers
                     var userDTO = new UserDTO
                     {
                         Id = user.Id,
-                        fullname= user.Fullname,
-                        role= user.Role,
-                        phone= user.Phone,
-                        birthday= user.Birthday,
-                        email= user.Email,
-                        address= user.Address,
+                        fullname = user.Fullname,
+                        role = user.Role,
+                        phone = user.Phone,
+                        birthday = user.Birthday,
+                        email = user.Email,
+                        address = user.Address,
                         createdAt = user.CreatedAt,
                         updatedAt = user.UpdatedAt,
                         deletedAt = user.DeletedAt,
@@ -526,6 +526,8 @@ namespace ArtGallery.Controllers
                 return BadRequest(response);
             }
         }
+
+
     }
 
 
