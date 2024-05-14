@@ -26,7 +26,7 @@ namespace ArtGallery.Controllers
         }
 
         [HttpGet("get-by-user")]
-        //[Authorize]
+        [Authorize]
         public async Task<IActionResult> GetByUser()
         {
             var identity = HttpContext.User.Identity as ClaimsIdentity;

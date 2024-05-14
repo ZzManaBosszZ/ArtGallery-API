@@ -33,6 +33,7 @@ namespace ArtGallery.Controllers
 
 
         [HttpGet("GetOrderAllAdmin")]
+        [Authorize(Roles = "Super Admin, Artist")]
         public async Task<IActionResult> GetOrderAll()
         {
             try
@@ -84,7 +85,7 @@ namespace ArtGallery.Controllers
         }
 
         [HttpGet("get-by-id-admin/{code_order}")]
-        //[Authorize(Roles = "Super Admin, Movie Theater Manager Staff")]
+        [Authorize(Roles = "Super Admin, Artist")]
         public async Task<IActionResult> GetOrderDetail(string code_order)
         {
             try
@@ -185,7 +186,7 @@ namespace ArtGallery.Controllers
                     {
                         Id = offer.Id,
                         UserId = offer.UserId,
-                        UserName = user.Fullname,
+                        //UserName = user.Fullname,
                         OfferPrice = offer.OfferPrice,
                         ArtWorkId = offer.ArtWorkId,
                         OfferCode = offer.OfferCode,
@@ -317,7 +318,7 @@ namespace ArtGallery.Controllers
         }
 
         [HttpPost("CreateOfferUser")]
-        //[Authorize]
+        [Authorize]
         public async Task<IActionResult> CreateOffer(CreateOffer model)
         {
             var identity = HttpContext.User.Identity as ClaimsIdentity;
@@ -433,6 +434,7 @@ namespace ArtGallery.Controllers
         }
 
         [HttpPut("update-status-Admin/{offerCode}")]
+        [Authorize(Roles = "Super Admin, Artist")]
         public async Task<IActionResult> UpdateOfferStatus(string offerCode, [FromForm] UpdateStatusRequest request)
         {
             // Tìm đề xuất với OfferCode tương ứng
@@ -466,6 +468,18 @@ namespace ArtGallery.Controllers
                         Subject = "Offer Cancelled",
                         Body = $"Your offer with Code {offerCode} has been cancelled."
                     });
+                    break;
+                case "isPaid":
+                    // trả tiền
+                    offer.IsPaid = 1; // hoặc một giá trị khác để biểu thị trạng thái hủy
+                                       // Gửi email thông báo hủy
+                    await _emailService.SendEmailAsync(new Mailrequest
+                    {
+                        ToEmail = offer.User.Email,
+                        Subject = "Payment Success",
+                        Body = $"Your offer with Code {offerCode} has been payment."
+                    });
+
 
 
                     break;
@@ -493,6 +507,7 @@ namespace ArtGallery.Controllers
 
             return NoContent();
         }
+
 
         private bool OfferExists(int id)
         {

@@ -1,3 +1,4 @@
+﻿
 ﻿using ArtGallery.DTOs;
 using ArtGallery.Entities;
 using ArtGallery.Models.GeneralService;
@@ -15,24 +16,25 @@ namespace ArtGallery.Controllers
     public class DashboardController : ControllerBase
     {
         private readonly ArtGalleryApiContext _context;
-      
+
         public DashboardController(ArtGalleryApiContext context)
         {
             _context = context;
-           
+
         }
 
         // Endpoint để lấy tổng số lượng offer
         [HttpGet("total-count-offer")]
+        [Authorize(Roles = "Super Admin, Artist")]
         public async Task<IActionResult> GetTotalOfferCount()
         {
             try
             {
                 // Sử dụng LINQ để đếm số lượng offer trong cơ sở dữ liệu
-                var totalCount = await _context.Offer.Where(m => m.DeletedAt == null).CountAsync();
+                var totalOffer = await _context.Offer.Where(m => m.DeletedAt == null).CountAsync();
 
                 // Trả về số lượng offer trong response
-                return Ok(totalCount);
+                return Ok(totalOffer);
             }
             catch (Exception ex)
             {
@@ -42,33 +44,30 @@ namespace ArtGallery.Controllers
         }
 
         [HttpGet("total-count-user")]
-        public async Task<IActionResult> GetTotalUserCount()
-        {
-            try
-            {
-                // Sử dụng LINQ để đếm số lượng user trong cơ sở dữ liệu
-                var totalCount = await _context.Users.Where(m => m.DeletedAt == null).CountAsync();
+        [Authorize(Roles = "Super Admin")]
 
-                // Trả về số lượng user trong response
-                return Ok(totalCount);
-            }
-            catch (Exception ex)
+        public async Task<IActionResult> GetUserCount()
+        {
+            var userCount = new
             {
-                // Xử lý nếu có lỗi xảy ra
-                return StatusCode(500, "Internal server error");
-            }
+                TotalUser = await _context.Users.Where(u => u.Role.Equals("User")).CountAsync(),
+                TotalArtist = await _context.Users.Where(u => u.Role.Equals("Artist")).CountAsync(),
+            };
+
+            return Ok(userCount);
         }
 
-        [HttpGet("total-count-Artist")]
+        [HttpGet("total-count-artist")]
+        [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> GetTotalArtistCount()
         {
             try
             {
                 // Sử dụng LINQ để đếm số lượng artist trong cơ sở dữ liệu
-                var totalCount = await _context.Artist.Where(m => m.DeletedAt == null).CountAsync();
+                var totalArtist = await _context.Artist.Where(m => m.DeletedAt == null).CountAsync();
 
                 // Trả về số lượng artist trong response
-                return Ok(totalCount);
+                return Ok(totalArtist);
             }
             catch (Exception ex)
             {
@@ -77,16 +76,17 @@ namespace ArtGallery.Controllers
             }
         }
 
-        [HttpGet("total-count")]
+        [HttpGet("total-count-artwork")]
+        [Authorize(Roles = "Super Admin, Artist")]
         public async Task<IActionResult> GetTotalArtworkCount()
         {
             try
             {
                 // Sử dụng LINQ để đếm số lượng artwork trong cơ sở dữ liệu
-                var totalCount = await _context.ArtWork.Where(m => m.DeletedAt == null).CountAsync();
+                var totalArtwork = await _context.ArtWork.Where(m => m.DeletedAt == null).CountAsync();
 
                 // Trả về số lượng artwork trong response
-                return Ok(totalCount);
+                return Ok(totalArtwork);
             }
             catch (Exception ex)
             {
@@ -97,6 +97,7 @@ namespace ArtGallery.Controllers
 
 
         [HttpGet("revenue/yearly")]
+        [Authorize(Roles = "Super Admin, Artist")]
         public IActionResult GetYearlySales()
         {
             int currentYear = DateTime.UtcNow.Year;
@@ -118,6 +119,7 @@ namespace ArtGallery.Controllers
         }
 
         [HttpGet("revenue/monthly/{year}")]
+        [Authorize(Roles = "Super Admin, Artist")]
         public IActionResult GetMonthlySales(int year)
         {
             // Validate the input year
@@ -154,6 +156,7 @@ namespace ArtGallery.Controllers
         }
 
         [HttpGet("revenue/weekly")]
+        [Authorize(Roles = "Super Admin, Artist")]
         public IActionResult GetWeeklySales()
         {
             DateTime today = DateTime.UtcNow.Date;
@@ -181,7 +184,8 @@ namespace ArtGallery.Controllers
         }
 
 
-        [HttpGet("TotalRevenue")]
+        [HttpGet("total-revenue")]
+        [Authorize(Roles = "Super Admin, Artist")]
         public async Task<IActionResult> GetTotalRevenue()
         {
             try
@@ -199,20 +203,19 @@ namespace ArtGallery.Controllers
             }
         }
 
-        // GET: api/Offer/Today
-        [HttpGet("Today")]
-        public IActionResult GetOffersCreatedToday()
+        // GET: api/Offer/TotalOfferToday
+        [HttpGet("total-offer-today")]
+        [Authorize(Roles = "Super Admin, Artist")]
+        public async Task<IActionResult> GetTotalOfferToday()
         {
             try
-            {               
-                var todayStart = DateTime.Today;
-                var todayEnd = DateTime.Today.AddDays(1).AddSeconds(-1);
-                var offersToday = _context.Offer
-                    .Include(o => o.User) 
-                    .Where(o => o.CreatedAt >= todayStart && o.CreatedAt <= todayEnd)
-                    .ToList();
+            {
+                DateTime today = DateTime.Today;
+                var totalOfferToday = await _context.Offer
+                    .Where(o => o.CreatedAt.HasValue && o.CreatedAt.Value.Date == today)
+                    .CountAsync();
 
-                return Ok(offersToday);
+                return Ok(new { totalOfferToday });
             }
             catch (Exception ex)
             {
@@ -220,31 +223,33 @@ namespace ArtGallery.Controllers
             }
         }
 
-        // GET: api/Offer/TotalOfferToday
-        [HttpGet("list-order-today")]
-       
+        [HttpGet("list-offer-today")]
+        [Authorize(Roles = "Super Admin, Artist")]
         public async Task<IActionResult> GetListOfferToDay()
         {
             try
             {
                 DateTime today = DateTime.Now.Date;
-                List<Offer> offers = await _context.Offer.Include(o => o.User).Include(o => o.OfferArtWorks).ThenInclude(o => o.ArtWork).Where(o => o.CreatedAt.Value.Date == today).OrderByDescending(p => p.CreatedAt).ToListAsync();
+                List<Offer> offers = await _context.Offer.Include(o => o.User).Include(o => o.OfferArtWorks)
+        .ThenInclude(oaw => oaw.ArtWork).Where(o => o.CreatedAt.Value.Date == today).OrderByDescending(p => p.CreatedAt).ToListAsync();
                 List<OfferDTO> result = new List<OfferDTO>();
                 foreach (var offer in offers)
                 {
                     result.Add(new OfferDTO
                     {
-                        Id = offer.Id,
                         OfferCode = offer.OfferCode,
+                        ArtWorkId = offer.ArtWorkId,
                         UserId = offer.UserId,
-                        UserName = offer.User.Fullname,
+                        //UserName = offer.User.Fullname,
                         ToTal = offer.Total,
                         Status = offer.Status,
                         ArtWorkNames = offer.OfferArtWorks.Select(oaw => oaw.ArtWork.Name).ToList(),
+                        ArtWorkImages = offer.OfferArtWorks.Select(oaw => oaw.ArtWork.ArtWorkImage).ToList(),
+                        OfferPrice = offer.OfferPrice,
                         createdAt = offer.CreatedAt,
                         updatedAt = offer.UpdatedAt,
                         deletedAt = offer.DeletedAt,
-                    });
+                    }) ;
                 }
 
                 return Ok(result);
@@ -262,34 +267,6 @@ namespace ArtGallery.Controllers
 
                 return BadRequest(response);
             }
-        }     
-
-        [HttpGet("total-cusAndSta")]  
-        public async Task<IActionResult> GetUserCount()
-        {
-            var userCount = new
-            {
-                TotalUser = await _context.Users.Where(u => u.Role.Equals("User")).CountAsync(),
-                TotalArtist = await _context.Users.Where(u => u.Role.Equals("Artist")).CountAsync(),
-            };
-
-            return Ok(userCount);
-        }
-
-        [HttpGet("order-overview")]
-        public async Task<IActionResult> GetOfferOverview()
-        {
-            var totalOffers = new
-            {
-                DailyRevenue = await _context.Offer
-                    .Where(offer => offer.CreatedAt.Value.Date == DateTime.Today)
-                    .SumAsync(offer => offer.Total),
-                MonthlyRevenue = await _context.Offer
-                    .Where(offer => offer.CreatedAt.Value.Month == DateTime.Today.Month && offer.CreatedAt.Value.Year == DateTime.Today.Year)
-                    .SumAsync(offer => offer.Total)
-            };
-
-            return Ok(totalOffers);
         }
 
         

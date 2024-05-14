@@ -38,7 +38,7 @@ namespace ArtGallery.Controllers
         }
 
         [HttpGet]
-        //[Authorize(Roles = "Super Admin")]
+        [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> GetArtistAll([FromQuery] string search = null/*,[FromQuery] List<int> artWorkIds = null*/,[FromQuery] List<int> schoolOfArtsIds = null)
         {
             try
@@ -142,7 +142,7 @@ namespace ArtGallery.Controllers
 
 
         [HttpGet("{id}")]
-        //[Authorize(Roles = "Super Admin")]
+        [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> GetArtistById(int id)
         {
             try
@@ -225,7 +225,7 @@ namespace ArtGallery.Controllers
 
 
         [HttpPost("create")]
-        //[Authorize(Roles = "Super Admin")] 
+        [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> CreateArtist([FromForm] CreateArtistModel model)
         {
             var identity = HttpContext.User.Identity as ClaimsIdentity;
@@ -364,7 +364,7 @@ namespace ArtGallery.Controllers
 
 
         [HttpPut("edit")]
-        //[Authorize(Roles = "Super Admin")]
+        [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> EditArtist([FromForm] EditArtistModel model)
         {
             try
