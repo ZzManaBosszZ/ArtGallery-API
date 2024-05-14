@@ -18,7 +18,7 @@ namespace ArtGallery.Entities
 
         public string Role { get; set; } = null!;
 
-        public string Address { get; set; } = null!;
+        public string? Address { get; set; } 
 
         //public int Status { get; set; }
 
@@ -34,5 +34,7 @@ namespace ArtGallery.Entities
 
         public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
         public virtual ICollection<Offer> Offers { get; set; } = new List<Offer>();
+
+        public virtual ICollection<Follow> Follow { get; set; } = new List<Follow>();
     }
 }

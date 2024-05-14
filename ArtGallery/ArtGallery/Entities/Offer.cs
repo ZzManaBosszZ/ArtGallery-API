@@ -8,7 +8,7 @@
         public string OfferCode { get; set; } = null!;
         public decimal OfferPrice { get; set; }
         public decimal Total { get; set; }
-        public string Address { get; set; }
+        public string? Address { get; set; }
         public int IsPaid { get; set; }
 
         //public string PaymentMethod { get; set; } = null!;

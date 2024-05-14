@@ -21,5 +21,7 @@ namespace ArtGallery.Models.Users
         [MaxLength(250)]
         [MinLength(6)]
         public string password { get; set; }
+
+       
     }
 }

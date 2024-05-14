@@ -14,6 +14,7 @@ using ArtGallery.Models.Offer;
 using ArtGallery.Helper;
 using ArtGallery.Service.Email;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
+using NuGet.Packaging.Signing;
 
 namespace ArtGallery.Controllers
 {
@@ -263,11 +264,14 @@ namespace ArtGallery.Controllers
                         Id = offer.Id,
                         OfferCode = offer.OfferCode,
                         UserId = offer.UserId,
+                        ArtWorkId=offer.ArtWorkId,
                         UserName = offer.User.Fullname,
                         OfferPrice = offer.OfferPrice,
                         ToTal = offer.Total,
                         Status = offer.Status,
                         Address = offer.Address,
+                        ArtWorkNames = offer.OfferArtWorks.Select(oaw => oaw.ArtWork.Name).ToList(),
+                        ArtWorkImages = offer.OfferArtWorks.Select(oaw => oaw.ArtWork.ArtWorkImage).ToList(),
                         IsPaid = offer.IsPaid,  
                         CreatedAt = offer.CreatedAt,
                         UpdatedAt = offer.UpdatedAt,
@@ -328,6 +332,7 @@ namespace ArtGallery.Controllers
                     Data = ""
                 });
             }
+
             try
             {
                 var userClaims = identity.Claims;
@@ -346,9 +351,21 @@ namespace ArtGallery.Controllers
                         Data = ""
                     });
                 }
+                var artwork = await _context.ArtWork.FindAsync(model.ArtWorkId);
+                if (artwork == null)
+                {
+                    return NotFound(new GeneralService
+                    {
+                        Success = false,
+                        StatusCode = 404,
+                        Message = "Artwork not found",
+                        Data = ""
+                    });
+                }
 
                 Offer offer = new Offer
                 {
+
                     OfferCode = GenerateRandom.GenerateRandomString(8),
                     ArtWorkId = model.ArtWorkId,
                     UserId = user.Id,
@@ -356,30 +373,27 @@ namespace ArtGallery.Controllers
                     Status = 0,
                     Address = user.Address,
                     IsPaid = 0,
+                    OfferPrice = artwork.Price,
                     //PaymentMethod = model.paymentMethod,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now,
                     DeletedAt = null,
                 };
-
                 _context.Offer.Add(offer);
                 await _context.SaveChangesAsync();
-
-                List<OfferArtWorkResponse> ArtWork = new List<OfferArtWorkResponse>();
-
-                foreach (var item in offer.OfferArtWorks)
+                var offerArtWork = new OfferArtWork
                 {
-                    var ArtWorks = new OfferArtWorkResponse
-                    {
-                        Id = item.Id,
-                        OfferId = item.OfferId,
-                        ArtWorkId = item.ArtWorkId,
-                        ArtWorkName = item.ArtWork.Name,
-                        ArtWorkImage = item.ArtWork.ArtWorkImage,
-                        OfferPrice = item.Price,
-                    };
-                    ArtWork.Add(ArtWorks);
-                }
+                    OfferId = offer.Id,
+                    ArtWorkId = artwork.Id,
+                    Price = artwork.Price
+                };
+
+                // Thêm vào danh sách OfferArtWorks của Offer
+                offer.OfferArtWorks.Add(offerArtWork);
+                // Thêm Offer vào context
+                await _context.SaveChangesAsync();
+                
+
 
                 Mailrequest mailrequest = new Mailrequest();
                 mailrequest.ToEmail = user.Email;
@@ -393,8 +407,12 @@ namespace ArtGallery.Controllers
                     OfferCode = offer.OfferCode,
                     ArtWorkId = offer.ArtWorkId,
                     UserId = offer.UserId,
+                    UserName = user.Fullname,
                     ToTal = offer.Total,
                     Status = offer.Status,
+                    OfferPrice= offer.OfferPrice,
+                    ArtWorkNames = new List<string> { artwork.Name }, // Thêm tên tác phẩm vào danh sách
+                    ArtWorkImages = new List<string> { artwork.ArtWorkImage },
                     createdAt = offer.CreatedAt,
                     updatedAt = offer.UpdatedAt,
                     deletedAt = offer.DeletedAt,

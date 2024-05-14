@@ -14,7 +14,7 @@
 
         public string role { get; set; } = null!;
 
-        public string address { get; set; } = null!;
+        public string? address { get; set; } 
 
         //public int status { get; set; }
 

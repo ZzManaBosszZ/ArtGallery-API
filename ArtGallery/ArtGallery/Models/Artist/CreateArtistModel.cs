@@ -16,9 +16,6 @@ namespace ArtGallery.Models.Artist
         public IFormFile ImagePath { get; set; }
 
         [Required]
-        public List<int> ArtWorkIds { get; set; }
-
-        [Required]
         public List<int> SchoolOfArtIds { get; set; }
     }
 }

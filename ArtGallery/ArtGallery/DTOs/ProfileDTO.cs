@@ -10,6 +10,6 @@
 
         public string? phone { get; set; }
 
-        public string address { get; set; } = null!;
+        public string? address { get; set; } 
     }
 }
