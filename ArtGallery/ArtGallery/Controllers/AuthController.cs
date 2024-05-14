@@ -475,8 +475,7 @@ namespace ArtGallery.Controllers
         [HttpGet]
         [Route("user")]
         //[Authorize(Roles = "Super Admin")]
-        public async Task<IActionResult> GetUserAll(
-[FromQuery] string search = null)
+        public async Task<IActionResult> GetUserAll( [FromQuery] string search = null)
         {
             try
             {
@@ -526,6 +525,8 @@ namespace ArtGallery.Controllers
                 return BadRequest(response);
             }
         }
+
+
     }
 
 

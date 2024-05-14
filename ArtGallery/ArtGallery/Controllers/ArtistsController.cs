@@ -18,6 +18,7 @@ using ArtGallery.Models.ArtWork;
 using ArtGallery.Models.SchoolOfArt;
 using Microsoft.AspNetCore.Http.HttpResults;
 using System.Drawing;
+using System.Security.Claims;
 
 namespace ArtGallery.Controllers
 {
@@ -38,10 +39,7 @@ namespace ArtGallery.Controllers
 
         [HttpGet]
         //[Authorize(Roles = "Super Admin")]
-        public async Task<IActionResult> GetArtistAll(
-[FromQuery] string search = null,
-[FromQuery] List<int> artWorkIds = null,
-[FromQuery] List<int> schoolOfArtsIds = null)
+        public async Task<IActionResult> GetArtistAll([FromQuery] string search = null,[FromQuery] List<int> artWorkIds = null,[FromQuery] List<int> schoolOfArtsIds = null)
         {
             try
             {
@@ -227,11 +225,50 @@ namespace ArtGallery.Controllers
 
 
         [HttpPost("create")]
-        //[Authorize(Roles = "Super Admin")]
+        //[Authorize(Roles = "Super Admin")] 
         public async Task<IActionResult> CreateArtist([FromForm] CreateArtistModel model)
         {
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+
+            if (!identity.IsAuthenticated)
+            {
+                return Unauthorized(new GeneralService
+                {
+                    Success = false,
+                    StatusCode = 401,
+                    Message = "Not Authorized",
+                    Data = ""
+                });
+            }
             try
             {
+                var userIdClaim = identity.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null)
+                {
+                    return Unauthorized(new GeneralService
+                    {
+                        Success = false,
+                        StatusCode = 401,
+                        Message = "Not Authorized",
+                        Data = ""
+                    });
+                }
+
+                var userId = Convert.ToInt32(userIdClaim.Value);
+
+                // Kiểm tra xem người dùng có tồn tại trong cơ sở dữ liệu không
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+                if (user == null)
+                {
+                    return Unauthorized(new GeneralService
+                    {
+                        Success = false,
+                        StatusCode = 401,
+                        Message = "Not Authorized",
+                        Data = ""
+                    });
+                }
+
                 bool artistExists = await _context.Artist.AnyAsync(a => a.Name.Equals(model.Name));
 
                 // Kiểm tra xem nghệ sĩ đã tồn tại hay chưa
@@ -264,30 +301,24 @@ namespace ArtGallery.Controllers
                     _context.Artist.Add(a);
                     await _context.SaveChangesAsync();
 
+                    // Tạo mối quan hệ giữa người dùng và nghệ sĩ
+                    var userArtist = new UserArtist
+                    {
+                        UserId = userId,
+                        ArtistId = a.Id
+                    };
+                    _context.UserArtist.Add(userArtist);
+                    await _context.SaveChangesAsync();
 
                     foreach (var schoolOfArtId in model.SchoolOfArtIds)
                     {
-                        var ArtistSchoolOfArts = new ArtistSchoolOfArt
+                        var artistSchoolOfArts = new ArtistSchoolOfArt
                         {
                             ArtistId = a.Id,
                             SchoolOfArtId = schoolOfArtId,
                         };
 
-                        _context.ArtistSchoolOfArt.Add(ArtistSchoolOfArts);
-
-                    }
-
-
-                    foreach (var artistartworkId in model.ArtWorkIds)
-                    {
-                        var ArtistArtWorks = new ArtistArtWork
-                        {
-                            ArtistId = a.Id,
-                            ArtWorkId = artistartworkId,
-                        };
-
-                        _context.ArtistArtWork.Add(ArtistArtWorks);
-
+                        _context.ArtistSchoolOfArt.Add(artistSchoolOfArts);
                     }
 
                     await _context.SaveChangesAsync();
@@ -330,6 +361,7 @@ namespace ArtGallery.Controllers
                 return StatusCode(500, response);
             }
         }
+
 
         [HttpPut("edit")]
         //[Authorize(Roles = "Super Admin")]
@@ -409,7 +441,96 @@ namespace ArtGallery.Controllers
             }
         }
 
+        [HttpPost("createdsad")]
+        //[Authorize(Roles = "Super Admin")]
+        public async Task<IActionResult> CreateArtistAdmin([FromForm] CreateArtistModel model)
+        {
+            try
+            {
+                bool artistExists = await _context.Artist.AnyAsync(a => a.Name.Equals(model.Name));
 
+                // Kiểm tra xem nghệ sĩ đã tồn tại hay chưa
+                if (artistExists)
+                {
+                    return BadRequest(new GeneralService
+                    {
+                        Success = false,
+                        StatusCode = 400,
+                        Message = "Artist already exists",
+                        Data = ""
+                    });
+                }
+
+                var image = await _imgService.UploadImageAsync(model.ImagePath, "Artist");
+                if (image != null)
+                {
+                    // Tạo một đối tượng Artist từ dữ liệu trong model và ảnh đã tải lên
+                    Artist a = new Artist
+                    {
+                        Name = model.Name,
+                        Image = image,
+                        Biography = model.Biography,
+                        Description = model.Description,
+                        CreatedAt = DateTime.Now,
+                        DeletedAt = null,
+                        UpdatedAt = null,
+                    };
+
+                    _context.Artist.Add(a);
+                    await _context.SaveChangesAsync();
+
+
+                    foreach (var schoolOfArtId in model.SchoolOfArtIds)
+                    {
+                        var ArtistSchoolOfArts = new ArtistSchoolOfArt
+                        {
+                            ArtistId = a.Id,
+                            SchoolOfArtId = schoolOfArtId,
+                        };
+
+                        _context.ArtistSchoolOfArt.Add(ArtistSchoolOfArts);
+
+                    }
+                    await _context.SaveChangesAsync();
+                    // Trả về thông báo thành công
+                    return Created($"get-by-id?id={a.Id}", new ArtistDTO
+                    {
+                        Id = a.Id,
+                        Name = a.Name,
+                        Image = a.Image,
+                        Biography = a.Biography,
+                        createdAt = a.CreatedAt,
+                        updatedAt = a.UpdatedAt,
+                        deletedAt = a.DeletedAt,
+
+                    });
+                }
+                else
+                {
+                    // Trả về thông báo lỗi nếu có vấn đề trong quá trình tải ảnh lên
+                    return BadRequest(new GeneralService
+                    {
+                        Success = false,
+                        StatusCode = 400,
+                        Message = "Error uploading image",
+                        Data = ""
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Trả về thông báo lỗi nếu có lỗi xảy ra trong quá trình xử lý
+                var response = new GeneralService
+                {
+                    Success = false,
+                    StatusCode = 500,
+                    Message = "Error creating artist: " + ex.Message,
+                    Data = ""
+                };
+
+                return StatusCode(500, response);
+            }
+        }
 
         // DELETE: api/Artists/5
         [HttpDelete("delete")]

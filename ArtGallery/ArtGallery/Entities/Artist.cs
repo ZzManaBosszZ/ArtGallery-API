@@ -15,5 +15,6 @@
         //public virtual ViewingRooms? ViewingRooms { get; set; } = null;
         public virtual ICollection<ArtistArtWork> ArtistArtWorks { get; set; } = new List<ArtistArtWork>();
         public virtual ICollection<ArtistSchoolOfArt> ArtistSchoolOfArts { get; set; } = new List<ArtistSchoolOfArt>();
+        public virtual ICollection<UserArtist> UserArtists  { get; set; } = new List<UserArtist>();
     }
 }

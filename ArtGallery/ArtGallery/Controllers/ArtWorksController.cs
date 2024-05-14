@@ -18,6 +18,8 @@ using ArtGallery.Models.SchoolOfArt;
 using ArtGallery.Service.Artists;
 using PayPal.v1.CustomerDisputes;
 using ArtGallery.Models.Artist;
+using ArtGallery.Models.Offer;
+using System.Security.Claims;
 
 namespace ArtGallery.Controllers
 {
@@ -46,6 +48,8 @@ namespace ArtGallery.Controllers
                 var query = _context.ArtWork
                     .Include(a => a.ArtWorkSchoolOfArts).ThenInclude(a => a.SchoolOfArt)
                     .Include(a => a.ArtistArtWorks).ThenInclude(a => a.Artist)
+                    
+                    
                     .Where(a => a.DeletedAt == null);
 
                 if (!string.IsNullOrEmpty(search))
@@ -85,6 +89,7 @@ namespace ArtGallery.Controllers
                     };
                     var schoolOfArts = new List<SchoolOfArtResponse>();
                     var Artist = new List<ArtistResponse>();
+                   
                     foreach (var item in aw.ArtWorkSchoolOfArts)
                     {
                         var schoolOfArt = new SchoolOfArtResponse
@@ -96,8 +101,6 @@ namespace ArtGallery.Controllers
 
                     }
                     artworkDTO.SchoolOfArts = schoolOfArts;
-                    result.Add(artworkDTO);
-                  
                     foreach (var item in aw.ArtistArtWorks)
                     {
                         var Artistss = new ArtistResponse
@@ -109,7 +112,9 @@ namespace ArtGallery.Controllers
 
                     }
                     artworkDTO.Artists = Artist;
+                    
                     result.Add(artworkDTO);
+
                 }
                 return Ok(result);
 
@@ -126,7 +131,6 @@ namespace ArtGallery.Controllers
 
                 return BadRequest(response);
             }
-
         }
 
         // GET: api/ArtWorks/5
@@ -140,6 +144,7 @@ namespace ArtGallery.Controllers
          .ThenInclude(a => a.Artist)
          .Include(a => a.ArtWorkSchoolOfArts)
          .ThenInclude(a => a.SchoolOfArt)
+         .Include(a => a.Offers)
          .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
 
                 if (artWork != null)
@@ -167,6 +172,7 @@ namespace ArtGallery.Controllers
 
                     var schoolOfArts = new List<SchoolOfArtResponse>();
                     var artist = new List<ArtistResponse>();
+                    var offer = new List<OfferResponse>();
                     foreach (var item in artWork.ArtWorkSchoolOfArts)
                     {
                         var schoolOfArtResponse = new SchoolOfArtResponse
@@ -189,7 +195,19 @@ namespace ArtGallery.Controllers
                         artist.Add(artistResponse);
                     }
                     artWorkDto.Artists = artist;
-
+                    foreach (var item in artWork.Offers)
+                    {
+                        var buyer = await _context.Users.FindAsync(item.UserId); 
+                        var offer1 = new OfferResponse
+                        {
+                            Id = item.Id,
+                            OfferPrice = item.OfferPrice, 
+                            ToTal = item.Total,
+                            UserName = buyer.Fullname
+                        };
+                        offer.Add(offer1);
+                    }
+                    artWorkDto.Offers = offer;
                     return Ok(artWorkDto);
                 }
                 else
@@ -340,6 +358,16 @@ namespace ArtGallery.Controllers
                             Data = ""
                         });
                     }
+
+                    var userIdentity = HttpContext.User.Identity as ClaimsIdentity;
+                    var userIdClaim = userIdentity.FindFirst(ClaimTypes.NameIdentifier);
+                    int userId = Convert.ToInt32(userIdClaim.Value);
+
+                    // Truy vấn danh sách nghệ sĩ của người dùng đăng nhập
+                    var userArtists = await _context.UserArtist
+                        .Where(ua => ua.UserId == userId)
+                        .Select(ua => ua.ArtistId)
+                        .ToListAsync();
                     ArtWork artWork = new ArtWork
                     {
                         Name = model.Name,

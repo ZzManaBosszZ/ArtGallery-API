@@ -1,5 +1,6 @@
 ﻿using ArtGallery.Entities;
 using ArtGallery.Models.Artist;
+using ArtGallery.Models.Offer;
 using ArtGallery.Models.SchoolOfArt;
 
 namespace ArtGallery.DTOs
@@ -22,6 +23,8 @@ namespace ArtGallery.DTOs
         public List<SchoolOfArtResponse>? SchoolOfArts { get; set; }
 
         public List<ArtistResponse>? Artists { get; set; }
+
+        public List<OfferResponse>? Offers { get; set; }
 
 
     }
