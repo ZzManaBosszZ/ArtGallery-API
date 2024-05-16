@@ -481,7 +481,7 @@ namespace ArtGallery.Controllers
             try
             {
                 // Bắt đầu với truy vấn gốc để lấy danh sách người dùng
-                var query = _context.Users.Where(a => a.DeletedAt == null && a.Role == "User");
+                var query = _context.Users.Where(a => a.DeletedAt == null && a.Role == "User" || a.Role == "Artist");
 
                 // Áp dụng bộ lọc tìm kiếm
                 if (!string.IsNullOrEmpty(search))
