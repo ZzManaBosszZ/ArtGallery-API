@@ -31,6 +31,7 @@ namespace ArtGallery.Entities
 
         public DbSet<ArtGallery.Entities.UserArtist> UserArtist { get; set; } = default!;
         public DbSet<ArtGallery.Entities.Follow> Follow { get; set; } = default!;
+        public DbSet<ArtGallery.Entities.ArtistRequest> ArtistRequests { get; set; } = default!;
 
 
     }
