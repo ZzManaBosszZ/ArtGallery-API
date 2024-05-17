@@ -12,13 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ArtGallery.Migrations
 {
     [DbContext(typeof(ArtGalleryApiContext))]
-<<<<<<<< HEAD:ArtGallery/ArtGallery/Migrations/20240514091823_InitialCreate.Designer.cs
-    [Migration("20240514091823_InitialCreate")]
+    [Migration("20240517081930_InitialCreate")]
     partial class InitialCreate
-========
-    [Migration("20240517042053_aa")]
-    partial class aa
->>>>>>>> main:ArtGallery/ArtGallery/Migrations/20240517042053_aa.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
