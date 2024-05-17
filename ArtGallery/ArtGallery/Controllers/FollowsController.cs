@@ -90,7 +90,7 @@ namespace ArtGallery.Controllers
                 return BadRequest(response);
             }
         }
-        
+
 
 
         [HttpPost("addtofollow")]

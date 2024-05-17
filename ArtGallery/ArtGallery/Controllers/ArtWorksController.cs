@@ -47,31 +47,82 @@ namespace ArtGallery.Controllers
         {
             try
             {
-                var userIdentity = HttpContext.User.Identity as ClaimsIdentity;
-                var userIdClaim = userIdentity.FindFirst(ClaimTypes.NameIdentifier);
-
-                if (userIdClaim == null)
-                {
-                    return Unauthorized(new { message = "Not Authorized" });
-                }
-
-                int userId = Convert.ToInt32(userIdClaim.Value);
-
-                // Lấy danh sách nghệ sĩ của người dùng đăng nhập
-                var userArtists = await _context.UserArtist
-                    .Where(ua => ua.UserId == userId)
-                    .Select(ua => ua.ArtistId)
-                    .ToListAsync();
-
                 var artWork = await _context.ArtWork
-                    .Include(a => a.ArtistArtWorks)
-                    .ThenInclude(a => a.Artist)
-                    .Include(a => a.ArtWorkSchoolOfArts)
-                    .ThenInclude(a => a.SchoolOfArt)
-                    .Include(a => a.Offers)
-                    .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
+         .Include(a => a.ArtistArtWorks)
+         .ThenInclude(a => a.Artist)
+         .Include(a => a.ArtWorkSchoolOfArts)
+         .ThenInclude(a => a.SchoolOfArt)
+         .Include(a => a.Offers)
+         .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
 
-                if (artWork == null)
+                if (artWork != null)
+                {
+                    var artWorkDto = new ArtWorkDTO
+                    {
+                        Id = artWork.Id,
+                        Name = artWork.Name,
+
+                        ArtWorkImage = artWork.ArtWorkImage,
+                        Medium = artWork.Medium,
+                        Materials = artWork.Materials,
+                        Size = artWork.Size,
+                        Condition = artWork.Condition,
+                        Signature = artWork.Signature,
+                        Rarity = artWork.Rarity,
+                        CertificateOfAuthenticity = artWork.CertificateOfAuthenticity,
+                        Frame = artWork.Frame,
+                        Series = artWork.Series,
+                        Price = artWork.Price,
+                        FavoriteCount = artWork.FavoriteCount,
+                        createdAt = artWork.CreatedAt,
+
+                    };
+
+                    var schoolOfArts = new List<SchoolOfArtResponse>();
+                    var artist = new List<ArtistResponse>();
+                    var offer = new List<OfferResponse>();
+                    foreach (var item in artWork.ArtWorkSchoolOfArts)
+                    {
+                        var schoolOfArtResponse = new SchoolOfArtResponse
+                        {
+                            Id = item.SchoolOfArt.Id,
+                            Name = item.SchoolOfArt.Name,
+                        };
+                        schoolOfArts.Add(schoolOfArtResponse);
+                    }
+                    artWorkDto.SchoolOfArts = schoolOfArts;
+
+                    foreach (var item in artWork.ArtistArtWorks)
+                    {
+                        var artistResponse = new ArtistResponse
+                        {
+                            Id = item.Artist.Id,
+                            Name = item.Artist.Name,
+
+                        };
+                        artist.Add(artistResponse);
+                    }
+                    artWorkDto.Artists = artist;
+                    foreach (var item in artWork.Offers)
+                    {
+                        var buyer = await _context.Users.FindAsync(item.UserId);
+                        var offer1 = new OfferResponse
+                        {
+                            Id = item.Id,
+                            OfferPrice = item.OfferPrice,
+                            ToTal = item.Total,
+                            UserName = buyer.Fullname,
+                            status = item.Status,
+                            offercode = item.OfferCode,
+                            CreatedAt = item.CreatedAt,
+
+                        };
+                        offer.Add(offer1);
+                    }
+                    artWorkDto.Offers = offer;
+                    return Ok(artWorkDto);
+                }
+                else
                 {
                     var response = new GeneralService
                     {
@@ -82,77 +133,7 @@ namespace ArtGallery.Controllers
                     };
 
                     return NotFound(response);
-                }
-
-                // Kiểm tra xem nghệ sĩ của người dùng có liên quan đến tác phẩm nghệ thuật không
-                bool isUserArtistRelated = artWork.ArtistArtWorks.Any(aa => userArtists.Contains(aa.ArtistId));
-
-                if (!isUserArtistRelated && !User.IsInRole("Super Admin"))
-                {
-                    return Forbid();
-                }
-
-                var artWorkDto = new ArtWorkDTO
-                {
-                    Id = artWork.Id,
-                    Name = artWork.Name,
-                    ArtWorkImage = artWork.ArtWorkImage,
-                    Medium = artWork.Medium,
-                    Materials = artWork.Materials,
-                    Size = artWork.Size,
-                    Condition = artWork.Condition,
-                    Signature = artWork.Signature,
-                    Rarity = artWork.Rarity,
-                    CertificateOfAuthenticity = artWork.CertificateOfAuthenticity,
-                    Frame = artWork.Frame,
-                    Series = artWork.Series,
-                    Price = artWork.Price,
-                    FavoriteCount = artWork.FavoriteCount,
-                    createdAt = artWork.CreatedAt,
                 };
-
-                var schoolOfArts = new List<SchoolOfArtResponse>();
-                var artists = new List<ArtistResponse>();
-                var offers = new List<OfferResponse>();
-
-                foreach (var item in artWork.ArtWorkSchoolOfArts)
-                {
-                    var schoolOfArtResponse = new SchoolOfArtResponse
-                    {
-                        Id = item.SchoolOfArt.Id,
-                        Name = item.SchoolOfArt.Name,
-                    };
-                    schoolOfArts.Add(schoolOfArtResponse);
-                }
-                artWorkDto.SchoolOfArts = schoolOfArts;
-
-                foreach (var item in artWork.ArtistArtWorks)
-                {
-                    var artistResponse = new ArtistResponse
-                    {
-                        Id = item.Artist.Id,
-                        Name = item.Artist.Name,
-                        Image = item.Artist.Image,
-                    };
-                    artists.Add(artistResponse);
-                }
-                artWorkDto.Artists = artists;
-
-                foreach (var item in artWork.Offers)
-                {
-                    var buyer = await _context.Users.FindAsync(item.UserId);
-                    var offerResponse = new OfferResponse
-                    {
-                        Id = item.Id,
-                        OfferPrice = item.OfferPrice,
-                        ToTal = item.Total,
-                        UserName = buyer.Fullname
-                    };
-                    offers.Add(offerResponse);
-                }
-                artWorkDto.Offers = offers;
-
-                return Ok(artWorkDto);
             }
             catch (Exception ex)
             {
