@@ -179,6 +179,46 @@ namespace ArtGallery.Migrations
                     b.ToTable("ArtistArtWork");
                 });
 
+            modelBuilder.Entity("ArtGallery.Entities.ArtistRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Biography")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Image")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NameArtist")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("StatusRequest")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ArtistRequests");
+                });
+
             modelBuilder.Entity("ArtGallery.Entities.ArtistSchoolOfArt", b =>
                 {
                     b.Property<int>("Id")
@@ -458,12 +498,17 @@ namespace ArtGallery.Migrations
                     b.Property<int>("ArtistId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("OfferId")
+                        .HasColumnType("int");
+
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ArtistId");
+
+                    b.HasIndex("OfferId");
 
                     b.HasIndex("UserId");
 
@@ -506,6 +551,17 @@ namespace ArtGallery.Migrations
                     b.Navigation("ArtWork");
 
                     b.Navigation("Artist");
+                });
+
+            modelBuilder.Entity("ArtGallery.Entities.ArtistRequest", b =>
+                {
+                    b.HasOne("ArtGallery.Entities.User", "User")
+                        .WithMany("ArtistRequests")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ArtGallery.Entities.ArtistSchoolOfArt", b =>
@@ -585,7 +641,7 @@ namespace ArtGallery.Migrations
             modelBuilder.Entity("ArtGallery.Entities.OfferArtWork", b =>
                 {
                     b.HasOne("ArtGallery.Entities.ArtWork", "ArtWork")
-                        .WithMany()
+                        .WithMany("OfferArtWork")
                         .HasForeignKey("ArtWorkId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -609,6 +665,10 @@ namespace ArtGallery.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ArtGallery.Entities.Offer", null)
+                        .WithMany("UserArtists")
+                        .HasForeignKey("OfferId");
+
                     b.HasOne("ArtGallery.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -628,6 +688,8 @@ namespace ArtGallery.Migrations
 
                     b.Navigation("Favorites");
 
+                    b.Navigation("OfferArtWork");
+
                     b.Navigation("Offers");
                 });
 
@@ -645,10 +707,14 @@ namespace ArtGallery.Migrations
             modelBuilder.Entity("ArtGallery.Entities.Offer", b =>
                 {
                     b.Navigation("OfferArtWorks");
+
+                    b.Navigation("UserArtists");
                 });
 
             modelBuilder.Entity("ArtGallery.Entities.User", b =>
                 {
+                    b.Navigation("ArtistRequests");
+
                     b.Navigation("Favorites");
 
                     b.Navigation("Follow");
