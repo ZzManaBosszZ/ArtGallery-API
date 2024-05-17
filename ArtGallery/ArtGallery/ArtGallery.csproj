@@ -7,6 +7,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="Controllers\AdminController.cs" />
+    <Content Include="Controllers\ArtistsController.cs" />
+    <Content Include="Controllers\ArtWorksController.cs" />
+    <Content Include="Controllers\AuthController.cs" />
+    <Content Include="Controllers\DashboardController.cs" />
+    <Content Include="Controllers\FavoritesController.cs" />
+    <Content Include="Controllers\FollowsController.cs" />
+    <Content Include="Controllers\MenuController.cs" />
+    <Content Include="Controllers\OffersController.cs" />
+    <Content Include="Controllers\SchoolOfArtsController.cs" />
+    <Content Include="Controllers\SpecialistsController.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="MailKit" Version="4.5.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.4" />
@@ -25,6 +39,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Migrations\" />
     <Folder Include="Repositories\" />
     <Folder Include="wwwroot\uploads\" />
   </ItemGroup>
