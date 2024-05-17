@@ -69,6 +69,8 @@ namespace ArtGallery.Controllers
                         ArtWorkName=item.ArtWork.Name,
                         ArtWorkId=item.ArtWork.Id,  
                         UserId = item.UserId,
+                        ArtWorkAmount =item.ArtWork.Price,
+                        Series=item.ArtWork.Series,
                         createdAt = item.CreatedAt,
                         updatedAt = item.UpdatedAt,
                         deletedAt = item.DeletedAt,

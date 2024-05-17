@@ -5,7 +5,7 @@ namespace ArtGallery.Models.Artist
     public class ArtistRequestModel
     {
         [Required(ErrorMessage = "Name is required")]
-        public string Name { get; set; }
+        public string NameArtist { get; set; }
 
         [Required(ErrorMessage = "Biography is required")]
         public string Biography { get; set; }
@@ -15,7 +15,7 @@ namespace ArtGallery.Models.Artist
         [Required(ErrorMessage = "Image is required")]
         public IFormFile ImagePath { get; set; }
 
-        [Required]
-        public string SchoolOfArt { get; set; }
+        //[Required]
+        //public string SchoolOfArt { get; set; }
     }
 }

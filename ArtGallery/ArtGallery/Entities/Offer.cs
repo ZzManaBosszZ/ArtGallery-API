@@ -18,5 +18,8 @@
         public DateTime? DeletedAt { get; set; }
         public virtual User User { get; set; } = null!;
         public virtual ICollection<OfferArtWork> OfferArtWorks { get; set; } = new List<OfferArtWork>();
-    }
+
+        public virtual ICollection<UserArtist> UserArtists { get; set; } = new List<UserArtist>();
+
+    }  
 }

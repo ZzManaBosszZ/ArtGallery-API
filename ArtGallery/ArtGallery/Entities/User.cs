@@ -36,5 +36,8 @@ namespace ArtGallery.Entities
         public virtual ICollection<Offer> Offers { get; set; } = new List<Offer>();
 
         public virtual ICollection<Follow> Follow { get; set; } = new List<Follow>();
+
+       
+        public virtual ICollection<ArtistRequest> ArtistRequests { get; set; }
     }
 }

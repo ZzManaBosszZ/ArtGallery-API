@@ -3,14 +3,14 @@
     public class ArtistRequest
     {
         public int Id { get; set; }
-        public int UserId { get; set; } // ID của người dùng gửi yêu cầu
-        public string Name { get; set; } // Tên của nghệ sĩ
-        public string Image { get; set; } // Đường dẫn đến hình ảnh của nghệ sĩ
-        public string Biography { get; set; } // Tiểu sử của nghệ sĩ
-        public DateTime CreatedAt { get; set; } // Ngày tạo yêu cầu
-        public DateTime UpdatedAt { get; set; } // Ngày cập nhật yêu cầu
-        public DateTime? ApprovedAt { get; set; } // Ngày yêu cầu được chấp nhận
-        public DateTime? RejectedAt { get; set; } // Ngày yêu cầu bị từ chối
+        public int UserId { get; set; }
+        public string UserName { get; set; }
+        public string NameArtist { get; set; } 
+        public string Image { get; set; } 
+        public string Biography { get; set; }
+        //public string? SchoolOfArt { get; set; }
+        public int StatusRequest {  get; set; }
+        public DateTime CreatedAt { get; set; }
         public User User { get; set; }
-    }
+    }   
 }

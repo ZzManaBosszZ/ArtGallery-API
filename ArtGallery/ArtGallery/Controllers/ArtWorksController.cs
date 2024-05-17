@@ -400,11 +400,11 @@ namespace ArtGallery.Controllers
             try
             {
                 var query = _context.ArtWork
+                    .Include(a => a.OfferArtWork).ThenInclude(a => a.Offer)
                     .Include(a => a.ArtWorkSchoolOfArts).ThenInclude(a => a.SchoolOfArt)
                     .Include(a => a.ArtistArtWorks).ThenInclude(a => a.Artist)
                     
-                    
-                    .Where(a => a.DeletedAt == null);
+                   .Where(a => a.DeletedAt == null);
 
                 if (!string.IsNullOrEmpty(search))
                 {
@@ -459,7 +459,7 @@ namespace ArtGallery.Controllers
                     {
                         var Artistss = new ArtistResponse
                         {
-                            Id = item.Id,
+                            Id = item.Artist.Id,
                             Name = item.Artist.Name,
                             Image = item.Artist.Image,
                         };
@@ -473,6 +473,106 @@ namespace ArtGallery.Controllers
                 }
                 return Ok(result);
 
+            }
+            catch (Exception ex)
+            {
+                var response = new GeneralService
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    Message = ex.Message,
+                    Data = ""
+                };
+
+                return BadRequest(response);
+            }
+        }
+
+        [HttpGet("GetAllArtWorksOffer")]
+        public async Task<IActionResult> GetAllArtWorksOffer(
+        [FromQuery] string search = null,
+        [FromQuery] List<int> schoolOfArtsIds = null)
+        {
+            try
+            {
+                var query = _context.ArtWork
+                    .Include(a => a.ArtWorkSchoolOfArts).ThenInclude(a => a.SchoolOfArt)
+                    .Include(a => a.ArtistArtWorks).ThenInclude(a => a.Artist)
+                    .Where(a => a.DeletedAt == null);
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    query = query.Where(a => a.Name.Contains(search));
+                }
+
+                // Áp dụng bộ lọc SchoolOfArtIds
+                if (schoolOfArtsIds != null && schoolOfArtsIds.Any())
+                {
+                    query = query.Where(a => a.ArtWorkSchoolOfArts.Any(a1 => schoolOfArtsIds.Contains(a1.SchoolOfArtId)));
+                }
+
+                List<ArtWork> artworks = await query.OrderByDescending(m => m.Id).ToListAsync();
+                List<ArtWorkDTO> result = new List<ArtWorkDTO>();
+                foreach (ArtWork aw in artworks)
+                {
+                    // Kiểm tra xem có bất kỳ Offer nào liên quan của ArtWork này được thanh toán không
+                    bool isPaid = await _context.OfferArtWork.AnyAsync(oaw => oaw.ArtWorkId == aw.Id && oaw.Offer.IsPaid == 0);
+
+                    if (!isPaid)
+                    {
+                        // Tạo danh sách SchoolOfArtResponse từ ArtWorkSchoolOfArts
+                        var schoolOfArts = new List<SchoolOfArtResponse>();
+                        foreach (var item in aw.ArtWorkSchoolOfArts)
+                        {
+                            var schoolOfArt = new SchoolOfArtResponse
+                            {
+                                Id = item.Id,
+                                Name = item.SchoolOfArt.Name,
+                            };
+                            schoolOfArts.Add(schoolOfArt);
+                        }
+
+                        // Tạo danh sách ArtistResponse từ ArtistArtWorks
+                        var artists = new List<ArtistResponse>();
+                        foreach (var item in aw.ArtistArtWorks)
+                        {
+                            var artist = new ArtistResponse
+                            {
+                                Id = item.Artist.Id,
+                                Name = item.Artist.Name,
+                                Image = item.Artist.Image,
+                            };
+                            artists.Add(artist);
+                        }
+
+                        // Tạo ArtWorkDTO và thêm vào danh sách kết quả
+                        var artworkDTO = new ArtWorkDTO
+                        {
+                            Id = aw.Id,
+                            Name = aw.Name,
+                            ArtWorkImage = aw.ArtWorkImage,
+                            Medium = aw.Medium,
+                            Materials = aw.Materials,
+                            Size = aw.Size,
+                            Condition = aw.Condition,
+                            Signature = aw.Signature,
+                            Rarity = aw.Rarity,
+                            CertificateOfAuthenticity = aw.CertificateOfAuthenticity,
+                            Frame = aw.Frame,
+                            Series = aw.Series,
+                            Price = aw.Price,
+                            FavoriteCount = aw.FavoriteCount,
+                            createdAt = aw.CreatedAt,
+                            updatedAt = aw.UpdatedAt,
+                            deletedAt = aw.DeletedAt,
+                            SchoolOfArts = schoolOfArts,
+                            Artists = artists
+                        };
+                        result.Add(artworkDTO);
+                    }
+                }
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -844,10 +944,120 @@ namespace ArtGallery.Controllers
             return BadRequest(validationResponse);
         }
 
+        //[HttpPost("createadmin")]
+        ////[Authorize(Roles = "Super Admin")]
+        //public async Task<IActionResult> CreateArtWorkadmin([FromForm] CreateArtWorkModel model)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        try
+        //        {
+        //            var imageUrl = await _imgService.UploadImageAsync(model.ArtWorkImage, "artwork");
+
+        //            if (imageUrl == null)
+        //            {
+        //                return BadRequest(new GeneralService
+        //                {
+        //                    Success = false,
+        //                    StatusCode = 400,
+        //                    Message = "Please provide a image.",
+        //                    Data = ""
+        //                });
+        //            }
+        //            ArtWork artWork = new ArtWork
+        //            {
+        //                Name = model.Name,
+        //                ArtWorkImage = imageUrl,
+        //                Medium = model.Medium,
+        //                Materials = model.Materials,
+        //                Size = model.Size,
+        //                Condition = model.Condition,
+        //                Signature = model.Signature,
+        //                Rarity = model.Rarity,
+        //                CertificateOfAuthenticity = model.CertificateOfAuthenticity,
+        //                Frame = model.Frame,
+        //                Series = model.Series,
+        //                Price = model.Price,
+        //                CreatedAt = DateTime.Now,
+        //                UpdatedAt = DateTime.Now,
+        //                DeletedAt = null
+        //            };
+        //            _context.ArtWork.Add(artWork);
+        //            await _context.SaveChangesAsync();
+
+        //            foreach (var schoolOfArtId in model.SchoolOfArtIds)
+        //            {
+        //                var ArtworkSchoolOfArt = new ArtWorkSchoolOfArt
+        //                {
+        //                    ArtWorkId = artWork.Id,
+        //                    SchoolOfArtId = schoolOfArtId,
+        //                };
+
+        //                _context.ArtWorkSchoolOfArt.Add(ArtworkSchoolOfArt);
+
+        //            }
+        //            foreach (var artistId in model.ArtistId)
+        //            {
+        //                var ArtistArtWorks = new ArtistArtWork
+        //                {
+        //                    ArtWorkId = artWork.Id,
+        //                    ArtistId = artistId,
+        //                };
+
+        //                _context.ArtistArtWork.Add(ArtistArtWorks);
+
+        //            }
+
+        //            await _context.SaveChangesAsync();
+        //            return Created($"get-by-id?id={artWork.Id}", new ArtWorkDTO
+        //            {
+        //                Id = artWork.Id,
+        //                Name = artWork.Name,
+        //                ArtWorkImage = imageUrl,
+        //                Medium = artWork.Medium,
+        //                Materials = artWork.Materials,
+        //                Size = artWork.Size,
+        //                Condition = artWork.Condition,
+        //                Signature = artWork.Signature,
+        //                Rarity = artWork.Rarity,
+        //                CertificateOfAuthenticity = artWork.CertificateOfAuthenticity,
+        //                Frame = artWork.Frame,
+        //                Series = artWork.Series,
+        //                Price = artWork.Price,
+        //                createdAt = artWork.CreatedAt,
+        //                updatedAt = artWork.UpdatedAt,
+        //                deletedAt = artWork.DeletedAt,
+        //            });
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            var response = new GeneralService
+        //            {
+        //                Success = false,
+        //                StatusCode = 400,
+        //                Message = ex.Message,
+        //                Data = ""
+        //            };
+
+        //            return BadRequest(response);
+        //        }
+        //    }
+        //    var validationErrors = ModelState.Values.SelectMany(v => v.Errors).Select(v => v.ErrorMessage);
+
+        //    var validationResponse = new GeneralService
+        //    {
+        //        Success = false,
+        //        StatusCode = 400,
+        //        Message = "Validation errors",
+        //        Data = string.Join(" | ", validationErrors)
+        //    };
+
+        //    return BadRequest(validationResponse);
+        //}
         // DELETE: api/ArtWorks/5
         [HttpDelete("delete")]
         [Authorize(Roles = "Super Admin")]
-        public async Task<IActionResult> DeleteArtist(List<int> ids)
+        public async Task<IActionResult> DeleteArtWork(List<int> ids)
         {
             try
             {
@@ -872,6 +1082,244 @@ namespace ArtGallery.Controllers
                 };
 
                 return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                var response = new GeneralService
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    Message = ex.Message,
+                    Data = ""
+                };
+
+                return BadRequest(response);
+            }
+        }
+
+
+
+        [HttpGet("/{id}")]
+        [Authorize/*(Roles = "Super Admin, Artist")*/]
+        public async Task<ActionResult> GetArtWorkByIdArtist(int id)
+        {
+            try
+            {
+                var userIdentity = HttpContext.User.Identity as ClaimsIdentity;
+                var userIdClaim = userIdentity.FindFirst(ClaimTypes.NameIdentifier);
+
+                if (userIdClaim == null)
+                {
+                    return Unauthorized(new { message = "Not Authorized" });
+                }
+
+                int userId = Convert.ToInt32(userIdClaim.Value);
+
+                // Lấy danh sách nghệ sĩ của người dùng đăng nhập
+                var userArtists = await _context.UserArtist
+                    .Where(ua => ua.UserId == userId)
+                    .Select(ua => ua.ArtistId)
+                    .ToListAsync();
+
+                var artWork = await _context.ArtWork
+                    .Include(a => a.ArtistArtWorks)
+                    .ThenInclude(a => a.Artist)
+                    .Include(a => a.ArtWorkSchoolOfArts)
+                    .ThenInclude(a => a.SchoolOfArt)
+                    .Include(a => a.Offers)
+                    .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
+
+                if (artWork == null)
+                {
+                    var response = new GeneralService
+                    {
+                        Success = false,
+                        StatusCode = 404,
+                        Message = "Not Found",
+                        Data = ""
+                    };
+
+                    return NotFound(response);
+                }
+
+                // Kiểm tra xem nghệ sĩ của người dùng có liên quan đến tác phẩm nghệ thuật không
+                bool isUserArtistRelated = artWork.ArtistArtWorks.Any(aa => userArtists.Contains(aa.ArtistId));
+
+                if (!isUserArtistRelated && !User.IsInRole("Super Admin"))
+                {
+                    return Forbid();
+                }
+
+                var artWorkDto = new ArtWorkDTO
+                {
+                    Id = artWork.Id,
+                    Name = artWork.Name,
+                    ArtWorkImage = artWork.ArtWorkImage,
+                    Medium = artWork.Medium,
+                    Materials = artWork.Materials,
+                    Size = artWork.Size,
+                    Condition = artWork.Condition,
+                    Signature = artWork.Signature,
+                    Rarity = artWork.Rarity,
+                    CertificateOfAuthenticity = artWork.CertificateOfAuthenticity,
+                    Frame = artWork.Frame,
+                    Series = artWork.Series,
+                    Price = artWork.Price,
+                    FavoriteCount = artWork.FavoriteCount,
+                    createdAt = artWork.CreatedAt,
+                };
+
+                var schoolOfArts = new List<SchoolOfArtResponse>();
+                var artists = new List<ArtistResponse>();
+                var offers = new List<OfferResponse>();
+
+                foreach (var item in artWork.ArtWorkSchoolOfArts)
+                {
+                    var schoolOfArtResponse = new SchoolOfArtResponse
+                    {
+                        Id = item.SchoolOfArt.Id,
+                        Name = item.SchoolOfArt.Name,
+                    };
+                    schoolOfArts.Add(schoolOfArtResponse);
+                }
+                artWorkDto.SchoolOfArts = schoolOfArts;
+
+                foreach (var item in artWork.ArtistArtWorks)
+                {
+                    var artistResponse = new ArtistResponse
+                    {
+                        Id = item.Artist.Id,
+                        Name = item.Artist.Name,
+                        Image = item.Artist.Image,
+                    };
+                    artists.Add(artistResponse);
+                }
+                artWorkDto.Artists = artists;
+
+                foreach (var item in artWork.Offers)
+                {
+                    var buyer = await _context.Users.FindAsync(item.UserId);
+                    var offerResponse = new OfferResponse
+                    {
+                        Id = item.Id,
+                        OfferPrice = item.OfferPrice,
+                        ToTal = item.Total,
+                        UserName = buyer.Fullname
+                    };
+                    offers.Add(offerResponse);
+                }
+                artWorkDto.Offers = offers;
+
+                return Ok(artWorkDto);
+            }
+            catch (Exception ex)
+            {
+                var response = new GeneralService
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    Message = ex.Message,
+                    Data = ""
+                };
+                return BadRequest(response);
+            }
+        }
+
+        [HttpGet("aaa")]
+        [Authorize]
+        public async Task<IActionResult> GetAllArtWorksArtist([FromQuery] string search = null,[FromQuery] List<int> schoolOfArtsIds = null)
+        {
+            try
+            {
+                var userIdentity = HttpContext.User.Identity as ClaimsIdentity;
+                var userIdClaim = userIdentity.FindFirst(ClaimTypes.NameIdentifier);
+
+                if (userIdClaim == null)
+                {
+                    return Unauthorized(new { message = "Not Authorized" });
+                }
+
+                int userId = Convert.ToInt32(userIdClaim.Value);
+
+                // Lấy danh sách nghệ sĩ của người dùng đăng nhập
+                var userArtists = await _context.UserArtist
+                    .Where(ua => ua.UserId == userId)
+                    .Select(ua => ua.ArtistId)
+                    .ToListAsync();
+
+                var query = _context.ArtWork
+                    .Include(a => a.ArtWorkSchoolOfArts).ThenInclude(a => a.SchoolOfArt)
+                    .Include(a => a.ArtistArtWorks).ThenInclude(a => a.Artist)
+                    .Where(a => a.DeletedAt == null)
+                    .Where(a => a.ArtistArtWorks.Any(aa => userArtists.Contains(aa.ArtistId))); 
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    query = query.Where(a => a.Name.Contains(search));
+                }
+
+                if (schoolOfArtsIds != null && schoolOfArtsIds.Any())
+                {
+                    query = query.Where(a => a.ArtWorkSchoolOfArts.Any(a1 => schoolOfArtsIds.Contains(a1.SchoolOfArtId)));
+                }
+
+                List<ArtWork> artworks = await query.OrderByDescending(m => m.Id).ToListAsync();
+                List<ArtWorkDTO> result = new List<ArtWorkDTO>();
+
+                foreach (ArtWork aw in artworks)
+                {
+                    var artworkDTO = new ArtWorkDTO
+                    {
+                        Id = aw.Id,
+                        Name = aw.Name,
+                        ArtWorkImage = aw.ArtWorkImage,
+                        Medium = aw.Medium,
+                        Materials = aw.Materials,
+                        Size = aw.Size,
+                        Condition = aw.Condition,
+                        Signature = aw.Signature,
+                        Rarity = aw.Rarity,
+                        CertificateOfAuthenticity = aw.CertificateOfAuthenticity,
+                        Frame = aw.Frame,
+                        Series = aw.Series,
+                        Price = aw.Price,
+                        FavoriteCount = aw.FavoriteCount,
+                        createdAt = aw.CreatedAt,
+                        updatedAt = aw.UpdatedAt,
+                        deletedAt = aw.DeletedAt,
+                    };
+
+                    var schoolOfArts = new List<SchoolOfArtResponse>();
+                    var artists = new List<ArtistResponse>();
+
+                    foreach (var item in aw.ArtWorkSchoolOfArts)
+                    {
+                        var schoolOfArt = new SchoolOfArtResponse
+                        {
+                            Id = item.Id,
+                            Name = item.SchoolOfArt.Name,
+                        };
+                        schoolOfArts.Add(schoolOfArt);
+                    }
+
+                    foreach (var item in aw.ArtistArtWorks)
+                    {
+                        var artist = new ArtistResponse
+                        {
+                            Id = item.Id,
+                            Name = item.Artist.Name,
+                            Image = item.Artist.Image,
+                        };
+                        artists.Add(artist);
+                    }
+
+                    artworkDTO.SchoolOfArts = schoolOfArts;
+                    artworkDTO.Artists = artists;
+
+                    result.Add(artworkDTO);
+                }
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
