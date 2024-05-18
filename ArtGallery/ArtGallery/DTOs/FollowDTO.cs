@@ -1,4 +1,6 @@
-﻿namespace ArtGallery.DTOs
+﻿using ArtGallery.Models.ArtWork;
+
+namespace ArtGallery.DTOs
 {
     public class FollowDTO : AbstractDTO<FollowDTO>
     {
@@ -7,5 +9,6 @@
         public string ArtistImage { get; set; } = null!;
 
         public int UserId { get; set; }
+        public List<ArtWorkResponse> ArtWorks { get; set; } = new List<ArtWorkResponse>();
     }
 }
