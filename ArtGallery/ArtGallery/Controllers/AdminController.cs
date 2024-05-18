@@ -4,6 +4,7 @@ using ArtGallery.Helper;
 using ArtGallery.Models.Artist;
 using ArtGallery.Models.GeneralService;
 using ArtGallery.Models.Offer;
+using ArtGallery.Models.SchoolOfArt;
 using ArtGallery.Service.Artists;
 using ArtGallery.Service.Email;
 using ArtGallery.Service.IMG;
@@ -29,7 +30,7 @@ namespace ArtGallery.Controllers
             _context = context;
             _imgService = imgService;
             _emailService = emailService;
-            
+
         }
 
         [HttpPost("request-artist")]
@@ -41,7 +42,6 @@ namespace ArtGallery.Controllers
             {
                 return Unauthorized();
             }
-
             try
             {
                 var userClaims = identity.Claims;
@@ -52,13 +52,10 @@ namespace ArtGallery.Controllers
                 {
                     return NotFound("User not found");
                 }
-                // Tạo một thực thể mới đại diện cho yêu cầu
-                
-
-                var image = await _imgService.UploadImageAsync(model.ImagePath, "Artist");
+                // Tạo một thực thể mới đại diện cho yêu cầu           
+                var image = await _imgService.UploadImageAsync(model.ImagePath, "ArtistRequest");
                 if (image != null)
                 {
-
                     var a = new ArtistRequest
                     {
                         UserId = user.Id,
@@ -66,15 +63,15 @@ namespace ArtGallery.Controllers
                         NameArtist = model.NameArtist,
                         Image = image,
                         Biography = model.Biography,
-                        StatusRequest= 0,
-                        //SchoolOfArt = model.SchoolOfArt,
-                        CreatedAt = DateTime.Now,                     
+                        StatusRequest = 0,
+                        SchoolOfArt = model.SchoolOfArt,
+                        CreatedAt = DateTime.Now,
                     };
                     _context.ArtistRequests.Add(a);
                     await _context.SaveChangesAsync();
                     var mailrequest = new Mailrequest
                     {
-                        ToEmail = "projectsem3123@gmail.com",
+                        ToEmail = "mailto:projectsem3123@gmail.com",
                         Subject = "New Artist Request",
                         Body = $"A new artist request has been submitted.\n\nArtist Name: {a.NameArtist}\nUser Name: {a.UserName}"
                     };
@@ -87,10 +84,10 @@ namespace ArtGallery.Controllers
                         UserName = a.UserName,
                         NameArtist = model.NameArtist,
                         Image = a.Image,
-                        //SchoolOfArt = a.SchoolOfArt,
+                        SchoolOfArt = a.SchoolOfArt,
                         Biography = a.Biography,
                         createdAt = a.CreatedAt,
-                         
+
                     });
                 }
                 else
@@ -103,7 +100,7 @@ namespace ArtGallery.Controllers
                         Message = "Error uploading image",
                         Data = ""
                     });
-                }  
+                }
             }
             catch (Exception ex)
             {
@@ -111,87 +108,17 @@ namespace ArtGallery.Controllers
             }
         }
 
-        //[HttpPost("accept-artist-request/{requestId}")]
-        //[Authorize/*(Roles = "Admin")*/]
-        //public async Task<IActionResult> AcceptArtistRequest(int requestId)
-        //{
-        //    try
-        //    {
-        //        switch (requestId)
-        //        {
-        //            case 1:
-        //                var artistRequest = await _context.ArtistRequests.FindAsync(requestId);
-        //                if (artistRequest == null)
-        //                {
-        //                    return NotFound("Artist request not found");
-        //                }
-        //                var user = await _context.Users.FindAsync(artistRequest.UserId);
-        //                if (user == null)
-        //                {
-        //                    return NotFound("User not found");
-        //                }
-        //                user.Role = "Artist";
-        //                var newArtist = new Artist
-        //                {
-        //                    Name = artistRequest.NameArtist,
-        //                    Image = artistRequest.Image,
-        //                    Biography = artistRequest.Biography,
-        //                };
-        //                _context.Artist.Add(newArtist);
-        //                var mailrequest = new Mailrequest
-        //                {
-        //                    ToEmail = user.Email,
-        //                    Subject = "Artist Request Accepted",
-        //                    Body = "Your artist request has been accepted. You are now an artist!"
-        //                };
-        //                await _emailService.SendEmailAsync(mailrequest);    
-        //                await _context.SaveChangesAsync();
-
-        //                return Ok("Artist request accepted successfully");
-        //            case 0:
-        //                var rejectedRequest = await _context.ArtistRequests.FindAsync(requestId);
-        //                if (rejectedRequest == null)
-        //                {
-        //                    return NotFound("Artist request not found");
-        //                }
-
-        //                // Gửi email thông báo từ chối
-        //                var rejectMailrequest = new Mailrequest
-        //                {
-        //                    ToEmail = rejectedRequest.User.Email,
-        //                    Subject = "Artist Request Rejected",
-        //                    Body = "Your artist request has been rejected."
-        //                };
-        //                await _emailService.SendEmailAsync(rejectMailrequest);
-
-        //                // Xóa bản ghi ArtistRequest đã bị từ chối
-        //                _context.ArtistRequests.Remove(rejectedRequest);
-        //                await _context.SaveChangesAsync();
-        //                return Ok("Artist request rejected successfully");
-        //            default:
-        //                return BadRequest("Invalid request");
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, $"Internal server error: {ex.Message}");
-        //    }
-        //}
-
         [HttpPost("accept-artist-request")]
         //[Authorize/*(Roles = "Admin")*/]
         public async Task<IActionResult> AcceptArtistRequest(int id, [FromForm] UpdateStatusRequest request)
         {
             try
             {
-                // Tìm yêu cầu nghệ sĩ tương ứng bằng id
                 var artistRequest = await _context.ArtistRequests.FirstOrDefaultAsync(ar => ar.Id == id);
                 if (artistRequest == null)
                 {
                     return NotFound("Artist request not found");
                 }
-
-                // Tìm người dùng tương ứng với yêu cầu
                 var user = await _context.Users.FindAsync(artistRequest.UserId);
                 if (user == null)
                 {
@@ -218,19 +145,24 @@ namespace ArtGallery.Controllers
                             UserId = user.Id,
                             ArtistId = newArtist.Id
                         };
-
-
                         _context.UserArtist.Add(userArtist);
                         await _context.SaveChangesAsync();
+                        var ArtistSchoolofart = new ArtistSchoolOfArt
+                        {
+                            ArtistId = newArtist.Id,
+                            SchoolOfArtId = newArtist.Id
+                        };
+                        _context.ArtistSchoolOfArt.Add(ArtistSchoolofart);
+                        await _context.SaveChangesAsync();
 
-                        // Gửi email thông báo chấp nhận yêu cầu
-                        //var mailRequest = new Mailrequest
-                        //{
-                        //    ToEmail = user.Email,
-                        //    Subject = "Artist Request Accepted",
-                        //    Body = "Your artist request has been accepted. You are now an artist!"
-                        //};
-                        //await _emailService.SendEmailAsync(mailRequest);
+                        //Gửi email thông báo chấp nhận yêu cầu
+                        var mailRequest = new Mailrequest
+                        {
+                            ToEmail = user.Email,
+                            Subject = "Artist Request Accepted",
+                            Body = "Your artist request has been accepted. You are now an artist!"
+                        };
+                        await _emailService.SendEmailAsync(mailRequest);
 
                         return Ok("Artist request accepted successfully");
 
@@ -275,22 +207,20 @@ namespace ArtGallery.Controllers
                 {
                     return NotFound("No artist requests found");
                 }
-
                 // Chuyển đổi danh sách các yêu cầu thành đối tượng DTO để hiển thị
                 var result = artistRequests.Select(request => new ArtistRequestDTO
                 {
                     Id = request.Id,
                     UserId = request.UserId,
                     UserName = request.UserName,
-                    NameArtist = request.NameArtist,  
+                    NameArtist = request.NameArtist,
                     Status = request.StatusRequest,
-                    //SchoolOfArt = request.SchoolOfArt,
+                    SchoolOfArt = request.SchoolOfArt,
                     Image = request.Image,
                     Biography = request.Biography,
                     createdAt = request.CreatedAt,
-                    
-                }).ToList();
 
+                }).ToList();
                 // Trả về danh sách các yêu cầu dưới dạng kết quả
                 return Ok(result);
             }
@@ -308,5 +238,50 @@ namespace ArtGallery.Controllers
                 return StatusCode(500, response);
             }
         }
+
+        [HttpGet("get-request-artist/{id}")]
+        public async Task<IActionResult> GetArtistRequestById(int id)
+        {
+            try
+            {
+                var artistRequest = await _context.ArtistRequests.FindAsync(id);
+
+                if (artistRequest == null)
+                {
+                    return NotFound("Artist request not found");
+                }
+
+                // Chuyển đổi yêu cầu thành đối tượng DTO để hiển thị
+                var result = new ArtistRequestDTO
+                {
+                    Id = artistRequest.Id,
+                    UserId = artistRequest.UserId,
+                    UserName = artistRequest.UserName,
+                    NameArtist = artistRequest.NameArtist,
+                    Status = artistRequest.StatusRequest,
+                    Image = artistRequest.Image,
+                    SchoolOfArt = artistRequest.SchoolOfArt,
+                    Biography = artistRequest.Biography,
+                    createdAt = artistRequest.CreatedAt,
+                };
+
+                // Trả về yêu cầu dưới dạng kết quả
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                // Xử lý ngoại lệ nếu có lỗi xảy ra
+                var response = new GeneralService
+                {
+                    Success = false,
+                    StatusCode = 500,
+                    Message = $"Internal server error: {ex.Message}",
+                    Data = ""
+                };
+
+                return StatusCode(500, response);
+            }
+        }
+
     }
 }

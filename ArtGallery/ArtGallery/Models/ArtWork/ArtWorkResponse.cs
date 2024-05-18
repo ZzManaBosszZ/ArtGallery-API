@@ -3,6 +3,8 @@
     public class ArtWorkResponse
     {
         public int Id { get; set; }
+
+        public int artWorkId { get; set; }
         public string Name { get; set; }
         public string ArtWorkImage { get; set; }
         public string Medium { get; set; }

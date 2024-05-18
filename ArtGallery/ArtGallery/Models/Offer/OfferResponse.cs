@@ -8,5 +8,9 @@
 
         public decimal ToTal { get; set; }
 
+        public int status { get; set; }
+        public string offercode { get; set; }
+
+        public DateTime? CreatedAt { get; set; }
     }
 }

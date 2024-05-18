@@ -11,6 +11,7 @@ using ArtGallery.Models.Favorite;
 using ArtGallery.Models.GeneralService;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using ArtGallery.Models.ArtWork;
 
 namespace ArtGallery.Controllers
 {
@@ -59,21 +60,48 @@ namespace ArtGallery.Controllers
                     });
                 }
 
-                List<Follow> follows = await _context.Follow.Include(f => f.Artist).Where(f => f.UserId == user.Id).OrderByDescending(p => p.Id).ToListAsync();
-                List<FollowDTO> result = new List<FollowDTO>();
-                foreach (var item in follows)
+                var follows = await _context.Follow
+                    .Include(f => f.Artist)
+                        .ThenInclude(a => a.ArtistArtWorks)
+                        .ThenInclude(aw => aw.ArtWork)
+                    .Where(f => f.UserId == user.Id)
+                    .OrderByDescending(p => p.Id)
+                    .ToListAsync();
+
+                var result = new List<FollowDTO>();
+                foreach (var follow in follows)
                 {
-                    result.Add(new FollowDTO
+                    var artistDto = new FollowDTO
                     {
-                        Id = item.Id,
-                        ArtistImage = item.Artist.Image,
-                        ArtistName = item.Artist.Name,
-                        ArtistId = item.Artist.Id,
-                        UserId = item.UserId,
-                        createdAt = item.CreatedAt,
-                        updatedAt = item.UpdatedAt,
-                        deletedAt = item.DeletedAt,
-                    });
+                        Id = follow.Id,
+                        ArtistImage = follow.Artist.Image,
+                        ArtistName = follow.Artist.Name,
+                        ArtistId = follow.Artist.Id,
+                        UserId = follow.UserId,
+                        createdAt = follow.CreatedAt,
+                        updatedAt = follow.UpdatedAt,
+                        deletedAt = follow.DeletedAt,
+                        ArtWorks = follow.Artist.ArtistArtWorks
+                            .Select(aw => new ArtWorkResponse
+                            {
+                                Id = aw.ArtWork.Id,
+                                Name = aw.ArtWork.Name,
+                                ArtWorkImage = aw.ArtWork.ArtWorkImage,
+                                Medium = aw.ArtWork.Medium,
+                                Materials = aw.ArtWork.Materials,
+                                Size = aw.ArtWork.Size,
+                                Condition = aw.ArtWork.Condition,
+                                Signature = aw.ArtWork.Signature,
+                                Rarity = aw.ArtWork.Rarity,
+                                CertificateOfAuthenticity = aw.ArtWork.CertificateOfAuthenticity,
+                                Frame = aw.ArtWork.Frame,
+                                Series = aw.ArtWork.Series,
+                                Price = aw.ArtWork.Price,
+                                FavoriteCount = aw.ArtWork.FavoriteCount,
+                            }).ToList()
+                    };
+
+                    result.Add(artistDto);
                 }
                 return Ok(result);
             }
@@ -90,7 +118,7 @@ namespace ArtGallery.Controllers
                 return BadRequest(response);
             }
         }
-        
+
 
 
         [HttpPost("addtofollow")]
