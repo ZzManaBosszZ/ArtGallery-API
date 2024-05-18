@@ -15,7 +15,7 @@ namespace ArtGallery.Models.Artist
         [Required(ErrorMessage = "Image is required")]
         public IFormFile ImagePath { get; set; }
 
-        //[Required]
-        //public string SchoolOfArt { get; set; }
+        [Required]
+        public string SchoolOfArt { get; set; }
     }
 }

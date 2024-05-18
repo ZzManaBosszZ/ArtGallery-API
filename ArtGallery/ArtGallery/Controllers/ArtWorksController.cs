@@ -42,7 +42,7 @@ namespace ArtGallery.Controllers
         }
 
         [HttpGet("getbyid/{id}")]
-        [Authorize(Roles = "Artist")]
+        [Authorize]
         public async Task<ActionResult> GetArtWorkByIdArtist(int id)
         {
             try
@@ -61,7 +61,6 @@ namespace ArtGallery.Controllers
                     {
                         Id = artWork.Id,
                         Name = artWork.Name,
-
                         ArtWorkImage = artWork.ArtWorkImage,
                         Medium = artWork.Medium,
                         Materials = artWork.Materials,
@@ -487,6 +486,8 @@ namespace ArtGallery.Controllers
                 return BadRequest(response);
             }
         }
+
+
 
         [HttpGet("GetAllArtWorksOffer")]
         public async Task<IActionResult> GetAllArtWorksOffer(

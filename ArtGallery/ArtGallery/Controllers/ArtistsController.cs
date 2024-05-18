@@ -191,13 +191,13 @@ namespace ArtGallery.Controllers
         //}
 
         [HttpGet]
-        public async Task<IActionResult> GetArtistAll([FromQuery] string search = null,[FromQuery] List<int> artWorkIds = null,[FromQuery] List<int> schoolOfArtsIds = null)
+        public async Task<IActionResult> GetArtistAll([FromQuery] string search = null, [FromQuery] List<int> artWorkIds = null/*,[FromQuery] List<int> schoolOfArtsIds = null*/)
         {
             try
             {
                 // Bắt đầu với truy vấn gốc để lấy danh sách nghệ sĩ
                 var query = _context.Artist
-                    .Include(a => a.ArtistSchoolOfArts).ThenInclude(a => a.SchoolOfArt)
+                    //.Include(a => a.ArtistSchoolOfArts).ThenInclude(a => a.SchoolOfArt)
                     .Include(a => a.ArtistArtWorks).ThenInclude(a => a.ArtWork)
                     .Where(a => a.DeletedAt == null);
 
@@ -207,11 +207,11 @@ namespace ArtGallery.Controllers
                     query = query.Where(a => a.Name.Contains(search));
                 }
 
-                // Áp dụng bộ lọc SchoolOfArtIds
-                if (schoolOfArtsIds != null && schoolOfArtsIds.Any())
-                {
-                    query = query.Where(a => a.ArtistSchoolOfArts.Any(a1 => schoolOfArtsIds.Contains(a1.SchoolOfArtId)));
-                }
+                //// Áp dụng bộ lọc SchoolOfArtIds
+                //if (schoolOfArtsIds != null && schoolOfArtsIds.Any())
+                //{
+                //    query = query.Where(a => a.ArtistSchoolOfArts.Any(a1 => schoolOfArtsIds.Contains(a1.SchoolOfArtId)));
+                //}
 
                 // Áp dụng bộ lọc ArtWorkIds
                 if (artWorkIds != null && artWorkIds.Any())
@@ -229,25 +229,25 @@ namespace ArtGallery.Controllers
                         Name = a.Name,
                         Biography = a.Biography,
                         Image = a.Image,
-                        Description = a.Description,    
+                        Description = a.Description,
                         createdAt = a.CreatedAt,
                         updatedAt = a.UpdatedAt,
                         deletedAt = a.DeletedAt,
                     };
 
-                    var schoolOfArts = new List<SchoolOfArtResponse>();
-                    var artWorks = new List<ArtWorkResponse>();
 
-                    foreach (var item in a.ArtistSchoolOfArts)
-                    {
-                        var schoolOfArt = new SchoolOfArtResponse
-                        {
-                            Id = item.Id,
-                            Name = item.SchoolOfArt.Name,
-                        };
-                        schoolOfArts.Add(schoolOfArt);
-                    }
-                    artistDTO.SchoolOfArts = schoolOfArts;
+                    var artWorks = new List<ArtWorkResponse>();
+                    //var schoolOfArts = new List<SchoolOfArtResponse>();
+                    //foreach (var item in a.ArtistSchoolOfArts)
+                    //{
+                    //    var schoolOfArt = new SchoolOfArtResponse
+                    //    {
+                    //        Id = item.Id,
+                    //        Name = item.SchoolOfArt.Name,
+                    //    };
+                    //    schoolOfArts.Add(schoolOfArt);
+                    //}
+                    //artistDTO.SchoolOfArts = schoolOfArts;
                     foreach (var item in a.ArtistArtWorks)
                     {
                         var artWork = new ArtWorkResponse
@@ -293,14 +293,14 @@ namespace ArtGallery.Controllers
 
 
 
-        [HttpGet("{id}")]    
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetArtistById(int id)
         {
             try
             {
                 Artist a = await _context.Artist
                     .Include(a => a.ArtistArtWorks).ThenInclude(a => a.ArtWork)
-                    .Include(m => m.ArtistSchoolOfArts).ThenInclude(m => m.SchoolOfArt)
+                    //.Include(m => m.ArtistSchoolOfArts).ThenInclude(m => m.SchoolOfArt)
                     .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
 
                 if (a != null)
@@ -317,25 +317,26 @@ namespace ArtGallery.Controllers
                         deletedAt = a.DeletedAt,
                     };
 
-                    var schoolOfArts = new List<SchoolOfArtResponse>();
-                    var artWorks = new List<ArtWorkResponse>();
 
-                    foreach (var item in a.ArtistSchoolOfArts)
-                    {
-                        var schoolOfArt = new SchoolOfArtResponse
-                        {
-                            Id = item.Id,
-                            Name = item.SchoolOfArt.Name,
-                        };
-                        schoolOfArts.Add(schoolOfArt);
-                    }
-                    artistDto.SchoolOfArts = schoolOfArts;
+                    var artWorks = new List<ArtWorkResponse>();
+                    //var schoolOfArts = new List<SchoolOfArtResponse>();
+                    //foreach (var item in a.ArtistSchoolOfArts)
+                    //{
+                    //    var schoolOfArt = new SchoolOfArtResponse
+                    //    {
+                    //        Id = item.Id,
+                    //        Name = item.SchoolOfArt.Name,
+                    //    };
+                    //    schoolOfArts.Add(schoolOfArt);
+                    //}
+                    //artistDto.SchoolOfArts = schoolOfArts;
 
                     foreach (var item in a.ArtistArtWorks)
                     {
                         var artWork = new ArtWorkResponse
                         {
                             Id = item.Id,
+                            artWorkId = item.ArtWorkId,
                             Name = item.ArtWork.Name,
                             ArtWorkImage = item.ArtWork.ArtWorkImage,
                             Medium = item.ArtWork.Medium,
@@ -461,18 +462,18 @@ namespace ArtGallery.Controllers
                     _context.UserArtist.Add(userArtist);
                     await _context.SaveChangesAsync();
 
-                    foreach (var schoolOfArtId in model.SchoolOfArtIds)
-                    {
-                        var artistSchoolOfArts = new ArtistSchoolOfArt
-                        {
-                            ArtistId = a.Id,
-                            SchoolOfArtId = schoolOfArtId,
-                        };
+                    //foreach (var schoolOfArtId in model.SchoolOfArtIds)
+                    //{
+                    //    var artistSchoolOfArts = new ArtistSchoolOfArt
+                    //    {
+                    //        ArtistId = a.Id,
+                    //        SchoolOfArtId = schoolOfArtId,
+                    //    };
 
-                        _context.ArtistSchoolOfArt.Add(artistSchoolOfArts);
-                    }
+                    //    _context.ArtistSchoolOfArt.Add(artistSchoolOfArts);
+                    //}
 
-                    await _context.SaveChangesAsync();
+                    //await _context.SaveChangesAsync();
                     // Trả về thông báo thành công
                     return Created($"get-by-id?id={a.Id}", new ArtistDTO
                     {
@@ -592,7 +593,7 @@ namespace ArtGallery.Controllers
             }
         }
 
-      
+
         [HttpDelete("delete")]
         [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> DeleteArtist(List<int> ids)

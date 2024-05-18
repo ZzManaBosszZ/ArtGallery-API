@@ -7,7 +7,8 @@
         public int UserId { get; set; }
         public string Image { get; set; }
         public string Biography { get; set; }
-        //public string SchoolOfArt { get; set; }
+        public string SchoolOfArt { get; set; }
         public int Status { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }
