@@ -589,10 +589,20 @@ namespace ArtGallery.Controllers
         public async Task<IActionResult> UpdateOfferStatus(string offerCode, [FromForm] UpdateStatusRequest request)
         {
             // Tìm đề xuất với OfferCode tương ứng
-            var offer = await _context.Offer.Include(o => o.User).FirstOrDefaultAsync(o => o.OfferCode == offerCode);
+            var offer = await _context.Offer
+                .Include(o => o.User)
+                .Include(o => o.OfferArtWorks)
+                .ThenInclude(oa => oa.ArtWork)
+                .FirstOrDefaultAsync(o => o.OfferCode == offerCode);
+
             if (offer == null)
             {
                 return NotFound("Offer not found");
+            }
+
+            if (offer.User == null)
+            {
+                return NotFound("User associated with the offer not found");
             }
 
             // Kiểm tra hành động cần thực hiện
@@ -600,19 +610,42 @@ namespace ArtGallery.Controllers
             {
                 case "accept":
                     // Chấp nhận offer
-                    offer.Status = 1; // hoặc một giá trị khác để biểu thị trạng thái chấp nhận
-                    string paymentLink = $"http://localhost:5000/payment/{offerCode}";           // Gửi email thông báo chấp nhận
+                    offer.Status = 1; // Trạng thái chấp nhận
+                    string paymentLink = $"http://localhost:5000/payment/{offerCode}";
+
+                    // Gửi email thông báo chấp nhận
                     await _emailService.SendEmailAsync(new Mailrequest
                     {
                         ToEmail = offer.User.Email,
                         Subject = "Offer Accepted",
                         Body = $"Your offer with Code {offerCode} has been accepted. You can complete the payment process by clicking <a href='{paymentLink}'>here</a>."
-                        
                     });
+
+                    // Tìm tất cả các offer khác liên quan đến cùng một artwork và từ chối chúng
+                    var relatedOffers = await _context.Offer
+                        .Include(o => o.User)
+                        .Where(o => o.ArtWorkId == offer.ArtWorkId && o.Id != offer.Id)
+                        .ToListAsync();
+
+                    foreach (var relatedOffer in relatedOffers)
+                    {
+                        if (relatedOffer.User != null)
+                        {
+                            relatedOffer.Status = -1; // Trạng thái bị từ chối
+                                                      // Gửi email thông báo từ chối
+                            await _emailService.SendEmailAsync(new Mailrequest
+                            {
+                                ToEmail = relatedOffer.User.Email,
+                                Subject = "Offer Rejected",
+                                Body = $"Your offer with Code {relatedOffer.OfferCode} has been rejected."
+                            });
+                        }
+                    }
                     break;
+
                 case "reject":
                     // Hủy offer
-                    offer.Status = -1; // hoặc một giá trị khác để biểu thị trạng thái hủy
+                    offer.Status = -1; // Trạng thái hủy
                                        // Gửi email thông báo hủy
                     await _emailService.SendEmailAsync(new Mailrequest
                     {
@@ -621,20 +654,19 @@ namespace ArtGallery.Controllers
                         Body = $"Your offer with Code {offerCode} has been cancelled."
                     });
                     break;
+
                 case "isPaid":
-                    // trả tiền
-                    offer.IsPaid = 1; // hoặc một giá trị khác để biểu thị trạng thái hủy
-                                       // Gửi email thông báo hủy
+                    // Đánh dấu offer là đã thanh toán
+                    offer.IsPaid = 1; // Trạng thái đã thanh toán
+                                      // Gửi email thông báo thanh toán thành công
                     await _emailService.SendEmailAsync(new Mailrequest
                     {
                         ToEmail = offer.User.Email,
                         Subject = "Payment Success",
-                        Body = $"Your offer with Code {offerCode} has been payment."
+                        Body = $"Your offer with Code {offerCode} has been paid."
                     });
-
-
-
                     break;
+
                 default:
                     return BadRequest("Invalid action");
             }
@@ -659,6 +691,12 @@ namespace ArtGallery.Controllers
 
             return NoContent();
         }
+
+        private bool OfferExists(int id)
+        {
+            return _context.Offer.Any(e => e.Id == id);
+        }
+
 
 
 
@@ -739,7 +777,7 @@ namespace ArtGallery.Controllers
         //}
 
         //[HttpGet("GetOfferDetailArtist/{code_order}")]
-        
+
         //[Authorize]
         //public async Task<IActionResult> GetOfferDetailArtist(string code_order)
         //{
@@ -816,9 +854,5 @@ namespace ArtGallery.Controllers
         //    }
         //}
 
-        private bool OfferExists(int id)
-        {
-            return _context.Offer.Any(e => e.Id == id);
-        }
     }
 }
