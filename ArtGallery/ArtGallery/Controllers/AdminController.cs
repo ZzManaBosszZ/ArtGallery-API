@@ -108,7 +108,7 @@ namespace ArtGallery.Controllers
             }
         }
 
-        [HttpPost("accept-artist-request")]
+        [HttpPost("accept-artist-request/{id}")]
         //[Authorize/*(Roles = "Admin")*/]
         public async Task<IActionResult> AcceptArtistRequest(int id, [FromForm] UpdateStatusRequest request)
         {
