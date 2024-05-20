@@ -25,7 +25,7 @@ namespace ArtGallery.Service.Artists
                     Id = a.Id,
                     Name = a.Name,
                     Biography = a.Biography,
-                    Image = a.Image,
+                    ArtistImages = a.Image,
                     createdAt = a.CreatedAt,
                     updatedAt = a.UpdatedAt,
                     deletedAt = a.DeletedAt,

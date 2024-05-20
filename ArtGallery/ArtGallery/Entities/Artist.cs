@@ -18,5 +18,6 @@
         public virtual ICollection<UserArtist> UserArtists  { get; set; } = new List<UserArtist>();
 
         public virtual ICollection<Follow> Follow { get; set; } = new List<Follow>();
+
     }
 }

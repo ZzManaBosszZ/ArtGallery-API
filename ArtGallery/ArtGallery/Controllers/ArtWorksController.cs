@@ -310,7 +310,10 @@ namespace ArtGallery.Controllers
                             Id = item.Id,
                             OfferPrice = item.OfferPrice, 
                             ToTal = item.Total,
-                            UserName = buyer.Fullname
+                            UserName = buyer.Fullname,
+                            status = item.Status,
+                            offercode = item.OfferCode,
+                           
                         };
                         offer.Add(offer1);
                     }
@@ -856,6 +859,8 @@ namespace ArtGallery.Controllers
                         Id = item.Id,
                         OfferPrice = item.OfferPrice,
                         ToTal = item.Total,
+                        offercode = item.OfferCode, 
+                        status = item.Status,
                         UserName = buyer.Fullname
                     };
                     offers.Add(offerResponse);

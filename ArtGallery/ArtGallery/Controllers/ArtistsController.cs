@@ -207,7 +207,7 @@ namespace ArtGallery.Controllers
                     query = query.Where(a => a.Name.Contains(search));
                 }
 
-                // Áp dụng bộ lọc SchoolOfArtIds
+                //// Áp dụng bộ lọc SchoolOfArtIds
                 if (schoolOfArtsIds != null && schoolOfArtsIds.Any())
                 {
                     query = query.Where(a => a.ArtistSchoolOfArts.Any(a1 => schoolOfArtsIds.Contains(a1.SchoolOfArtId)));
@@ -228,16 +228,16 @@ namespace ArtGallery.Controllers
                         Id = a.Id,
                         Name = a.Name,
                         Biography = a.Biography,
-                        Image = a.Image,
+                        ArtistImages = a.Image,
                         Description = a.Description,    
                         createdAt = a.CreatedAt,
                         updatedAt = a.UpdatedAt,
                         deletedAt = a.DeletedAt,
                     };
 
-                    var schoolOfArts = new List<SchoolOfArtResponse>();
+                    
                     var artWorks = new List<ArtWorkResponse>();
-
+                    var schoolOfArts = new List<SchoolOfArtResponse>();
                     foreach (var item in a.ArtistSchoolOfArts)
                     {
                         var schoolOfArt = new SchoolOfArtResponse
@@ -310,16 +310,16 @@ namespace ArtGallery.Controllers
                         Id = a.Id,
                         Name = a.Name,
                         Biography = a.Biography,
-                        Image = a.Image,
+                        ArtistImages = a.Image,
                         Description = a.Description,
                         createdAt = a.CreatedAt,
                         updatedAt = a.UpdatedAt,
                         deletedAt = a.DeletedAt,
                     };
 
-                    var schoolOfArts = new List<SchoolOfArtResponse>();
+                   
                     var artWorks = new List<ArtWorkResponse>();
-
+                    var schoolOfArts = new List<SchoolOfArtResponse>();
                     foreach (var item in a.ArtistSchoolOfArts)
                     {
                         var schoolOfArt = new SchoolOfArtResponse
@@ -478,7 +478,7 @@ namespace ArtGallery.Controllers
                     {
                         Id = a.Id,
                         Name = a.Name,
-                        Image = a.Image,
+                        ArtistImages = a.Image,
                         Biography = a.Biography,
                         createdAt = a.CreatedAt,
                         updatedAt = a.UpdatedAt,
