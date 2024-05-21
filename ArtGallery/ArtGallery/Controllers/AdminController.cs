@@ -211,8 +211,6 @@ namespace ArtGallery.Controllers
         }
 
 
-
-
         [HttpGet("getall-request-artist")]
         public async Task<IActionResult> GetAllArtistRequests()
         {

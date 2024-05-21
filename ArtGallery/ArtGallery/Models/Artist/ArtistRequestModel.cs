@@ -19,3 +19,4 @@ namespace ArtGallery.Models.Artist
         public string SchoolOfArt { get; set; }
     }
 }
+ 

@@ -19,6 +19,7 @@ using ArtGallery.Models.SchoolOfArt;
 using Microsoft.AspNetCore.Http.HttpResults;
 using System.Drawing;
 using System.Security.Claims;
+using ArtGallery.Models.Offer;
 
 namespace ArtGallery.Controllers
 {
@@ -320,6 +321,9 @@ namespace ArtGallery.Controllers
                    
                     var artWorks = new List<ArtWorkResponse>();
                     var schoolOfArts = new List<SchoolOfArtResponse>();
+                    
+                    
+                    artistDto.SchoolOfArts = schoolOfArts;
                     foreach (var item in a.ArtistSchoolOfArts)
                     {
                         var schoolOfArt = new SchoolOfArtResponse

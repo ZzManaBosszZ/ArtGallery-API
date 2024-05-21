@@ -541,6 +541,95 @@ namespace ArtGallery.Controllers
             return NoContent();
         }
 
+        //public async Task<IActionResult> UpdateOfferStatus(string offerCode, [FromForm] UpdateStatusRequest request)
+        //{
+        //    // Tìm đề xuất với OfferCode tương ứng
+        //    var offer = await _context.Offer
+        //        .Include(o => o.User)
+        //        .FirstOrDefaultAsync(o => o.OfferCode == offerCode);
+        //    if (offer == null)
+        //    {
+        //        return NotFound("Offer not found");
+        //    }
+
+        //    // Kiểm tra hành động cần thực hiện
+        //    switch (request.Action)
+        //    {
+        //        case "accept":
+        //            offer.Status = 1; 
+        //            var userRole = offer.User.Role;
+        //            if (userRole == "Artist")
+        //            {
+        //                var adminShare = offer.Total * 0.1m;
+        //                offer.AdminShare = adminShare;
+        //                var adminEmail = "admin@example.com";
+        //                await _emailService.SendEmailAsync(new Mailrequest
+        //                {
+        //                    ToEmail = adminEmail,
+        //                    Subject = "Artwork Sold",
+        //                    Body = $"An artwork has been sold for {offer.Total:C}. Admin share is {adminShare:C}."
+        //                });
+        //            }
+        //            string paymentLink = $"http://localhost:5000/payment/{offerCode}";
+        //            await _emailService.SendEmailAsync(new Mailrequest
+        //            {
+        //                ToEmail = offer.User.Email,
+        //                Subject = "Offer Accepted",
+        //                Body = $"Your offer with Code {offerCode} has been accepted. You can complete the payment process by clicking <a href='{paymentLink}'>here</a>."
+        //            });
+        //            var relatedOffers = await _context.Offer
+        //                .Where(o => o.ArtWorkId == offer.ArtWorkId && o.Id != offer.Id)
+        //                .ToListAsync();
+        //            foreach (var relatedOffer in relatedOffers)
+        //            {
+        //                relatedOffer.Status = -1; 
+        //                await _emailService.SendEmailAsync(new Mailrequest
+        //                {
+        //                    ToEmail = relatedOffer.User.Email,
+        //                    Subject = "Offer Rejected",
+        //                    Body = $"Your offer with Code {relatedOffer.OfferCode} has been rejected."
+        //                });
+        //            }
+        //            break;
+        //        case "reject":
+        //            offer.Status = -1;
+        //            await _emailService.SendEmailAsync(new Mailrequest
+        //            {
+        //                ToEmail = offer.User.Email,
+        //                Subject = "Offer Cancelled",
+        //                Body = $"Your offer with Code {offerCode} has been cancelled."
+        //            });
+        //            break;
+        //        case "isPaid":
+        //            offer.IsPaid = 1;
+        //            await _emailService.SendEmailAsync(new Mailrequest
+        //            {
+        //                ToEmail = offer.User.Email,
+        //                Subject = "Payment Success",
+        //                Body = $"Your offer with Code {offerCode} has been paid."
+        //            });
+        //            break;
+        //        default:
+        //            return BadRequest("Invalid action");
+        //    }
+        //    _context.Entry(offer).State = EntityState.Modified;
+        //    try
+        //    {
+        //        await _context.SaveChangesAsync();
+        //    }
+        //    catch (DbUpdateConcurrencyException)
+        //    {
+        //        if (!OfferExists(offer.Id))
+        //        {
+        //            return NotFound();
+        //        }
+        //        else
+        //        {
+        //            throw;
+        //        }
+        //    }
+        //    return NoContent();
+        //}
 
         [HttpGet("GetOfferAllArtist")]
         [Authorize]

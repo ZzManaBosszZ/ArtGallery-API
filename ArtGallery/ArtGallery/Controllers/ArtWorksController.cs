@@ -241,7 +241,7 @@ namespace ArtGallery.Controllers
 
         // GET: api/ArtWorks/5
         [HttpGet("{id}")]
-        [Authorize(Roles = "Super Admin, Artist")]
+        //[Authorize(Roles = "Super Admin, Artist")]
         public async Task<ActionResult> GetArtWorkById(int id)
         {
             try
@@ -253,14 +253,13 @@ namespace ArtGallery.Controllers
          .ThenInclude(a => a.SchoolOfArt)
          .Include(a => a.Offers)
          .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
-
+                
                 if (artWork != null)
                 {
                     var artWorkDto = new ArtWorkDTO
                     {
                         Id = artWork.Id,
                         Name = artWork.Name,
-                        
                         ArtWorkImage = artWork.ArtWorkImage,
                         Medium = artWork.Medium,
                         Materials = artWork.Materials,
@@ -297,7 +296,7 @@ namespace ArtGallery.Controllers
                         {
                             Id = item.Artist.Id,
                             Name = item.Artist.Name,
-
+                            Image = item.Artist.Image,
                         };
                         artist.Add(artistResponse);
                     }
@@ -313,6 +312,7 @@ namespace ArtGallery.Controllers
                             UserName = buyer.Fullname,
                             status = item.Status,
                             offercode = item.OfferCode,
+                            ispaid= item.IsPaid
                            
                         };
                         offer.Add(offer1);
@@ -598,6 +598,144 @@ namespace ArtGallery.Controllers
 
             return BadRequest(validationResponse);
         }
+
+
+        [HttpPost("CreateArtWorkAdmin")]
+        [Authorize]
+        public async Task<IActionResult> CreateArtWorkAdmin([FromForm] CreateArtWorkAdminModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var imageUrl = await _imgService.UploadImageAsync(model.ArtWorkImage, "artwork");
+
+                    if (imageUrl == null)
+                    {
+                        return BadRequest(new GeneralService
+                        {
+                            Success = false,
+                            StatusCode = 400,
+                            Message = "Please provide an image.",
+                            Data = ""
+                        });
+                    }
+
+                    var userIdentity = HttpContext.User.Identity as ClaimsIdentity;
+                    var userIdClaim = userIdentity.FindFirst(ClaimTypes.NameIdentifier);
+                    int userId = Convert.ToInt32(userIdClaim.Value);
+
+                    // Create an ArtWork record for each ArtistId provided
+                    foreach (var artistId in model.ArtistId)
+                    {
+                        ArtWork artWork = new ArtWork
+                        {
+                            Name = model.Name,
+                            ArtWorkImage = imageUrl,
+                            Medium = model.Medium,
+                            Materials = model.Materials,
+                            Size = model.Size,
+                            Condition = model.Condition,
+                            Signature = model.Signature,
+                            Rarity = model.Rarity,
+                            CertificateOfAuthenticity = model.CertificateOfAuthenticity,
+                            Frame = model.Frame,
+                            Series = model.Series,
+                            Price = model.Price,
+                            CreatedAt = DateTime.Now,
+                            UpdatedAt = DateTime.Now,
+                            DeletedAt = null
+                        };
+
+                        _context.ArtWork.Add(artWork);
+                        await _context.SaveChangesAsync();
+
+                        foreach (var schoolOfArtId in model.SchoolOfArtIds)
+                        {
+                            var artworkSchoolOfArt = new ArtWorkSchoolOfArt
+                            {
+                                ArtWorkId = artWork.Id,
+                                SchoolOfArtId = schoolOfArtId,
+                            };
+
+                            _context.ArtWorkSchoolOfArt.Add(artworkSchoolOfArt);
+                        }
+
+                        var artistArtWork = new ArtistArtWork
+                        {
+                            ArtWorkId = artWork.Id,
+                            ArtistId = artistId
+                        };
+
+                        _context.ArtistArtWork.Add(artistArtWork);
+                        await _context.SaveChangesAsync();
+
+                        // Notify followers of the artist about the new artwork
+                        var followers = await _context.Follow
+                            .Where(f => f.ArtistId == artistId)
+                            .Select(f => f.UserId)
+                            .ToListAsync();
+
+                        var artistName = await _context.Artist
+                            .Where(a => a.Id == artistId)
+                            .Select(a => a.Name)
+                            .FirstOrDefaultAsync();
+
+                        var emailBody = $"Nghệ sĩ {artistName} vừa đăng một tác phẩm mới: {model.Name}. Xem chi tiết tại đây: {imageUrl}";
+
+                        foreach (var followerId in followers)
+                        {
+                            var followerEmail = await _context.Users
+                                .Where(u => u.Id == followerId)
+                                .Select(u => u.Email)
+                                .FirstOrDefaultAsync();
+
+                            var mailRequest = new Mailrequest
+                            {
+                                ToEmail = followerEmail,
+                                Subject = "Thông báo: Tác phẩm mới từ nghệ sĩ",
+                                Body = emailBody
+                            };
+
+                            await _emailService.SendEmailAsync(mailRequest);
+                        }
+                    }
+
+                    return Ok(new GeneralService
+                    {
+                        Success = true,
+                        StatusCode = 200,
+                        Message = "Artwork(s) created successfully.",
+                        Data = ""
+                    });
+                }
+                catch (Exception ex)
+                {
+                    var response = new GeneralService
+                    {
+                        Success = false,
+                        StatusCode = 400,
+                        Message = ex.Message,
+                        Data = ""
+                    };
+
+                    return BadRequest(response);
+                }
+            }
+
+            var validationErrors = ModelState.Values.SelectMany(v => v.Errors).Select(v => v.ErrorMessage);
+
+            var validationResponse = new GeneralService
+            {
+                Success = false,
+                StatusCode = 400,
+                Message = "Validation errors",
+                Data = string.Join(" | ", validationErrors)
+            };
+
+            return BadRequest(validationResponse);
+        }
+
 
         //[HttpPost("createadmin")]
         ////[Authorize(Roles = "Super Admin")]

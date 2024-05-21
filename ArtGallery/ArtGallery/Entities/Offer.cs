@@ -10,6 +10,7 @@
         public decimal Total { get; set; }
         public string? Address { get; set; }
         public int IsPaid { get; set; }
+        public decimal AdminShare { get; set; }
 
         //public string PaymentMethod { get; set; } = null!;
         public int Status { get; set; }
