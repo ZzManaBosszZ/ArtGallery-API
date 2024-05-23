@@ -1,4 +1,6 @@
-﻿namespace ArtGallery.Models.ArtWork
+﻿using ArtGallery.Models.Offer;
+
+namespace ArtGallery.Models.ArtWork
 {
     public class ArtWorkResponse
     {
@@ -18,6 +20,7 @@
         public string Series { get; set; }
         public decimal Price { get; set; }
         public int FavoriteCount { get; set; }
+        public List<OfferResponse> Offers { get; set; }
     }
 
 }

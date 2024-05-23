@@ -491,8 +491,8 @@ namespace ArtGallery.Controllers
 
         [HttpGet("GetAllArtWorksOffer")]
         public async Task<IActionResult> GetAllArtWorksOffer(
-        [FromQuery] string search = null,
-        [FromQuery] List<int> schoolOfArtsIds = null)
+    [FromQuery] string search = null,
+    [FromQuery] List<int> schoolOfArtsIds = null)
         {
             try
             {
@@ -517,7 +517,8 @@ namespace ArtGallery.Controllers
                 foreach (ArtWork aw in artworks)
                 {
                     // Kiểm tra xem có bất kỳ Offer nào liên quan của ArtWork này được thanh toán không
-                    bool isPaid = await _context.OfferArtWork.AnyAsync(oaw => oaw.ArtWorkId == aw.Id && oaw.Offer.IsPaid == 0);
+                    bool isPaid = await _context.OfferArtWork
+                        .AnyAsync(oaw => oaw.ArtWorkId == aw.Id && oaw.Offer.IsPaid == 1);
 
                     if (!isPaid)
                     {
@@ -603,6 +604,7 @@ namespace ArtGallery.Controllers
          .Include(a => a.Offers)
          .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
 
+
                 if (artWork != null)
                 {
                     var artWorkDto = new ArtWorkDTO
@@ -658,9 +660,12 @@ namespace ArtGallery.Controllers
                         var offer1 = new OfferResponse
                         {
                             Id = item.Id,
-                            OfferPrice = item.OfferPrice, 
+                            OfferPrice = item.OfferPrice,
                             ToTal = item.Total,
-                            UserName = buyer.Fullname
+                            UserName = buyer.Fullname,
+                            status = item.Status,
+                            offercode = item.OfferCode,
+                            isPaid = item.IsPaid
                         };
                         offer.Add(offer1);
                     }

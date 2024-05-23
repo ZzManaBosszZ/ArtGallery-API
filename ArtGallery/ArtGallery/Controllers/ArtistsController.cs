@@ -19,6 +19,7 @@ using ArtGallery.Models.SchoolOfArt;
 using Microsoft.AspNetCore.Http.HttpResults;
 using System.Drawing;
 using System.Security.Claims;
+using ArtGallery.Models.Offer;
 
 namespace ArtGallery.Controllers
 {
@@ -300,6 +301,8 @@ namespace ArtGallery.Controllers
             {
                 Artist a = await _context.Artist
                     .Include(a => a.ArtistArtWorks).ThenInclude(a => a.ArtWork)
+                    .ThenInclude(aw => aw.OfferArtWork).ThenInclude(oaw => oaw.Offer)
+                     .ThenInclude(o => o.User)
                     .Include(m => m.ArtistSchoolOfArts).ThenInclude(m => m.SchoolOfArt)
                     .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
 
@@ -317,9 +320,9 @@ namespace ArtGallery.Controllers
                         deletedAt = a.DeletedAt,
                     };
 
-
                     var artWorks = new List<ArtWorkResponse>();
                     var schoolOfArts = new List<SchoolOfArtResponse>();
+
                     foreach (var item in a.ArtistSchoolOfArts)
                     {
                         var schoolOfArt = new SchoolOfArtResponse
@@ -335,8 +338,7 @@ namespace ArtGallery.Controllers
                     {
                         var artWork = new ArtWorkResponse
                         {
-                            Id = item.Id,
-                            artWorkId = item.ArtWorkId,
+                            Id = item.ArtWork.Id,
                             Name = item.ArtWork.Name,
                             ArtWorkImage = item.ArtWork.ArtWorkImage,
                             Medium = item.ArtWork.Medium,
@@ -350,11 +352,24 @@ namespace ArtGallery.Controllers
                             Series = item.ArtWork.Series,
                             Price = item.ArtWork.Price,
                             FavoriteCount = item.ArtWork.FavoriteCount,
+                            Offers = item.ArtWork.OfferArtWork
+                                .Where(oaw => oaw.Offer.IsPaid == 1)
+                                .Select(oaw => new OfferResponse
+                                {
+                                    Id = oaw.Offer.Id,
+                                    OfferPrice = oaw.Offer.OfferPrice,
+                                    offercode = oaw.Offer.OfferCode,
+                                    ToTal = oaw.Offer.Total,
+                                    UserName = oaw.Offer.User.Fullname,
+                                    isPaid = oaw.Offer.IsPaid,
 
+                                })
+                                .ToList()
                         };
                         artWorks.Add(artWork);
                     }
                     artistDto.ArtWork = artWorks;
+
                     return Ok(artistDto);
                 }
 
