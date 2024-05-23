@@ -53,7 +53,7 @@ namespace ArtGallery.Controllers
                     return NotFound("User not found");
                 }
                 // Tạo một thực thể mới đại diện cho yêu cầu           
-                var image = await _imgService.UploadImageAsync(model.ImagePath, "ArtistRequest");
+                var image = await _imgService.UploadImageAsync(model.Image, "ArtistRequest");
                 if (image != null)
                 {
                     var a = new ArtistRequest
@@ -71,7 +71,7 @@ namespace ArtGallery.Controllers
                     await _context.SaveChangesAsync();
                     var mailrequest = new Mailrequest
                     {
-                        ToEmail = "mailto:projectsem3123@gmail.com",
+                        ToEmail = "projectsem3123@gmail.com",
                         Subject = "New Artist Request",
                         Body = $"A new artist request has been submitted.\n\nArtist Name: {a.NameArtist}\nUser Name: {a.UserName}"
                     };
@@ -108,7 +108,7 @@ namespace ArtGallery.Controllers
             }
         }
 
-        [HttpPost("accept-artist-request")]
+        [HttpPost("accept-artist-request/{id}")]
         //[Authorize/*(Roles = "Admin")*/]
         public async Task<IActionResult> AcceptArtistRequest(int id, [FromForm] UpdateStatusRequest request)
         {

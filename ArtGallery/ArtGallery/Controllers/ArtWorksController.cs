@@ -491,8 +491,8 @@ namespace ArtGallery.Controllers
 
         [HttpGet("GetAllArtWorksOffer")]
         public async Task<IActionResult> GetAllArtWorksOffer(
-        [FromQuery] string search = null,
-        [FromQuery] List<int> schoolOfArtsIds = null)
+    [FromQuery] string search = null,
+    [FromQuery] List<int> schoolOfArtsIds = null)
         {
             try
             {
@@ -517,7 +517,8 @@ namespace ArtGallery.Controllers
                 foreach (ArtWork aw in artworks)
                 {
                     // Kiểm tra xem có bất kỳ Offer nào liên quan của ArtWork này được thanh toán không
-                    bool isPaid = await _context.OfferArtWork.AnyAsync(oaw => oaw.ArtWorkId == aw.Id && oaw.Offer.IsPaid == 0);
+                    bool isPaid = await _context.OfferArtWork
+                        .AnyAsync(oaw => oaw.ArtWorkId == aw.Id && oaw.Offer.IsPaid == 1);
 
                     if (!isPaid)
                     {
@@ -603,13 +604,13 @@ namespace ArtGallery.Controllers
          .Include(a => a.Offers)
          .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
 
+
                 if (artWork != null)
                 {
                     var artWorkDto = new ArtWorkDTO
                     {
                         Id = artWork.Id,
                         Name = artWork.Name,
-                        
                         ArtWorkImage = artWork.ArtWorkImage,
                         Medium = artWork.Medium,
                         Materials = artWork.Materials,
@@ -646,7 +647,9 @@ namespace ArtGallery.Controllers
                         {
                             Id = item.Artist.Id,
                             Name = item.Artist.Name,
-
+                            Image = item.Artist.Image,
+                            Biography = item.Artist.Biography,
+                            Description = item.Artist.Description,  
                         };
                         artist.Add(artistResponse);
                     }
@@ -657,9 +660,12 @@ namespace ArtGallery.Controllers
                         var offer1 = new OfferResponse
                         {
                             Id = item.Id,
-                            OfferPrice = item.OfferPrice, 
+                            OfferPrice = item.OfferPrice,
                             ToTal = item.Total,
-                            UserName = buyer.Fullname
+                            UserName = buyer.Fullname,
+                            status = item.Status,
+                            offercode = item.OfferCode,
+                            isPaid = item.IsPaid
                         };
                         offer.Add(offer1);
                     }
@@ -945,116 +951,116 @@ namespace ArtGallery.Controllers
             return BadRequest(validationResponse);
         }
 
-        //[HttpPost("createadmin")]
-        ////[Authorize(Roles = "Super Admin")]
-        //public async Task<IActionResult> CreateArtWorkadmin([FromForm] CreateArtWorkModel model)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        try
-        //        {
-        //            var imageUrl = await _imgService.UploadImageAsync(model.ArtWorkImage, "artwork");
+        [HttpPost("createadmin")]
+        [Authorize(Roles = "Super Admin")]
+        public async Task<IActionResult> CreateArtWorkadmin([FromForm] CreateAdminArtWorkModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var imageUrl = await _imgService.UploadImageAsync(model.ArtWorkImage, "artwork");
 
-        //            if (imageUrl == null)
-        //            {
-        //                return BadRequest(new GeneralService
-        //                {
-        //                    Success = false,
-        //                    StatusCode = 400,
-        //                    Message = "Please provide a image.",
-        //                    Data = ""
-        //                });
-        //            }
-        //            ArtWork artWork = new ArtWork
-        //            {
-        //                Name = model.Name,
-        //                ArtWorkImage = imageUrl,
-        //                Medium = model.Medium,
-        //                Materials = model.Materials,
-        //                Size = model.Size,
-        //                Condition = model.Condition,
-        //                Signature = model.Signature,
-        //                Rarity = model.Rarity,
-        //                CertificateOfAuthenticity = model.CertificateOfAuthenticity,
-        //                Frame = model.Frame,
-        //                Series = model.Series,
-        //                Price = model.Price,
-        //                CreatedAt = DateTime.Now,
-        //                UpdatedAt = DateTime.Now,
-        //                DeletedAt = null
-        //            };
-        //            _context.ArtWork.Add(artWork);
-        //            await _context.SaveChangesAsync();
+                    if (imageUrl == null)
+                    {
+                        return BadRequest(new GeneralService
+                        {
+                            Success = false,
+                            StatusCode = 400,
+                            Message = "Please provide a image.",
+                            Data = ""
+                        });
+                    }
+                    ArtWork artWork = new ArtWork
+                    {
+                        Name = model.Name,
+                        ArtWorkImage = imageUrl,
+                        Medium = model.Medium,
+                        Materials = model.Materials,
+                        Size = model.Size,
+                        Condition = model.Condition,
+                        Signature = model.Signature,
+                        Rarity = model.Rarity,
+                        CertificateOfAuthenticity = model.CertificateOfAuthenticity,
+                        Frame = model.Frame,
+                        Series = model.Series,
+                        Price = model.Price,
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now,
+                        DeletedAt = null
+                    };
+                    _context.ArtWork.Add(artWork);
+                    await _context.SaveChangesAsync();
 
-        //            foreach (var schoolOfArtId in model.SchoolOfArtIds)
-        //            {
-        //                var ArtworkSchoolOfArt = new ArtWorkSchoolOfArt
-        //                {
-        //                    ArtWorkId = artWork.Id,
-        //                    SchoolOfArtId = schoolOfArtId,
-        //                };
+                    foreach (var schoolOfArtId in model.SchoolOfArtIds)
+                    {
+                        var ArtworkSchoolOfArt = new ArtWorkSchoolOfArt
+                        {
+                            ArtWorkId = artWork.Id,
+                            SchoolOfArtId = schoolOfArtId,
+                        };
 
-        //                _context.ArtWorkSchoolOfArt.Add(ArtworkSchoolOfArt);
+                        _context.ArtWorkSchoolOfArt.Add(ArtworkSchoolOfArt);
 
-        //            }
-        //            foreach (var artistId in model.ArtistId)
-        //            {
-        //                var ArtistArtWorks = new ArtistArtWork
-        //                {
-        //                    ArtWorkId = artWork.Id,
-        //                    ArtistId = artistId,
-        //                };
+                    }
+                    foreach (var artistId in model.ArtistId)
+                    {
+                        var ArtistArtWorks = new ArtistArtWork
+                        {
+                            ArtWorkId = artWork.Id,
+                            ArtistId = artistId,
+                        };
 
-        //                _context.ArtistArtWork.Add(ArtistArtWorks);
+                        _context.ArtistArtWork.Add(ArtistArtWorks);
 
-        //            }
+                    }
 
-        //            await _context.SaveChangesAsync();
-        //            return Created($"get-by-id?id={artWork.Id}", new ArtWorkDTO
-        //            {
-        //                Id = artWork.Id,
-        //                Name = artWork.Name,
-        //                ArtWorkImage = imageUrl,
-        //                Medium = artWork.Medium,
-        //                Materials = artWork.Materials,
-        //                Size = artWork.Size,
-        //                Condition = artWork.Condition,
-        //                Signature = artWork.Signature,
-        //                Rarity = artWork.Rarity,
-        //                CertificateOfAuthenticity = artWork.CertificateOfAuthenticity,
-        //                Frame = artWork.Frame,
-        //                Series = artWork.Series,
-        //                Price = artWork.Price,
-        //                createdAt = artWork.CreatedAt,
-        //                updatedAt = artWork.UpdatedAt,
-        //                deletedAt = artWork.DeletedAt,
-        //            });
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            var response = new GeneralService
-        //            {
-        //                Success = false,
-        //                StatusCode = 400,
-        //                Message = ex.Message,
-        //                Data = ""
-        //            };
+                    await _context.SaveChangesAsync();
+                    return Created($"get-by-id?id={artWork.Id}", new ArtWorkDTO
+                    {
+                        Id = artWork.Id,
+                        Name = artWork.Name,
+                        ArtWorkImage = imageUrl,
+                        Medium = artWork.Medium,
+                        Materials = artWork.Materials,
+                        Size = artWork.Size,
+                        Condition = artWork.Condition,
+                        Signature = artWork.Signature,
+                        Rarity = artWork.Rarity,
+                        CertificateOfAuthenticity = artWork.CertificateOfAuthenticity,
+                        Frame = artWork.Frame,
+                        Series = artWork.Series,
+                        Price = artWork.Price,
+                        createdAt = artWork.CreatedAt,
+                        updatedAt = artWork.UpdatedAt,
+                        deletedAt = artWork.DeletedAt,
+                    });
+                }
+                catch (Exception ex)
+                {
+                    var response = new GeneralService
+                    {
+                        Success = false,
+                        StatusCode = 400,
+                        Message = ex.Message,
+                        Data = ""
+                    };
 
-        //            return BadRequest(response);
-        //        }
-        //    }
-        //    var validationErrors = ModelState.Values.SelectMany(v => v.Errors).Select(v => v.ErrorMessage);
+                    return BadRequest(response);
+                }
+            }
+            var validationErrors = ModelState.Values.SelectMany(v => v.Errors).Select(v => v.ErrorMessage);
 
-        //    var validationResponse = new GeneralService
-        //    {
-        //        Success = false,
-        //        StatusCode = 400,
-        //        Message = "Validation errors",
-        //        Data = string.Join(" | ", validationErrors)
-        //    };
+            var validationResponse = new GeneralService
+            {
+                Success = false,
+                StatusCode = 400,
+                Message = "Validation errors",
+                Data = string.Join(" | ", validationErrors)
+            };
 
-        //    return BadRequest(validationResponse);
-        //}
+            return BadRequest(validationResponse);
+        }
         // DELETE: api/ArtWorks/5
         [HttpDelete("delete")]
         [Authorize(Roles = "Super Admin")]

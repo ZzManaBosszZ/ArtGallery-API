@@ -10,8 +10,6 @@
         public decimal Total { get; set; }
         public string? Address { get; set; }
         public int IsPaid { get; set; }
-
-        //public string PaymentMethod { get; set; } = null!;
         public int Status { get; set; }
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }

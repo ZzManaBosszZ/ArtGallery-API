@@ -16,7 +16,7 @@ namespace ArtGallery.DTOs
         //public string ArtistImages { get; set; }
         public string? Description { get; set; }
         public List<ArtWorkResponse>? ArtWork { get; set; }
-        //public List<SchoolOfArtResponse>? SchoolOfArts { get; set; }
+        public List<SchoolOfArtResponse>? SchoolOfArts { get; set; }
 
 
     }
