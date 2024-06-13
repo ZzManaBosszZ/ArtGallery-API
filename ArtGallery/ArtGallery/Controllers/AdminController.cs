@@ -30,7 +30,7 @@ namespace ArtGallery.Controllers
             _context = context;
             _imgService = imgService;
             _emailService = emailService;
-            
+
         }
 
         [HttpPost("request-artist")]
@@ -53,7 +53,7 @@ namespace ArtGallery.Controllers
                     return NotFound("User not found");
                 }
                 // Tạo một thực thể mới đại diện cho yêu cầu           
-                var image = await _imgService.UploadImageAsync(model.ImagePath, "ArtistRequest");
+                var image = await _imgService.UploadImageAsync(model.Image, "ArtistRequest");
                 if (image != null)
                 {
                     var a = new ArtistRequest
@@ -63,9 +63,9 @@ namespace ArtGallery.Controllers
                         NameArtist = model.NameArtist,
                         Image = image,
                         Biography = model.Biography,
-                        StatusRequest= 0,
+                        StatusRequest = 0,
                         SchoolOfArt = model.SchoolOfArt,
-                        CreatedAt = DateTime.Now,                     
+                        CreatedAt = DateTime.Now,
                     };
                     _context.ArtistRequests.Add(a);
                     await _context.SaveChangesAsync();
@@ -87,7 +87,7 @@ namespace ArtGallery.Controllers
                         SchoolOfArt = a.SchoolOfArt,
                         Biography = a.Biography,
                         createdAt = a.CreatedAt,
-                         
+
                     });
                 }
                 else
@@ -100,7 +100,7 @@ namespace ArtGallery.Controllers
                         Message = "Error uploading image",
                         Data = ""
                     });
-                }  
+                }
             }
             catch (Exception ex)
             {
@@ -108,7 +108,7 @@ namespace ArtGallery.Controllers
             }
         }
 
-        [HttpPost("accept-artist-request")]
+        [HttpPost("accept-artist-request/{id}")]
         //[Authorize/*(Roles = "Admin")*/]
         public async Task<IActionResult> AcceptArtistRequest(int id, [FromForm] UpdateStatusRequest request)
         {
@@ -147,29 +147,12 @@ namespace ArtGallery.Controllers
                         };
                         _context.UserArtist.Add(userArtist);
                         await _context.SaveChangesAsync();
-                        var existingSchoolOfArt = await _context.SchoolOfArt.FirstOrDefaultAsync(soa => soa.Name == artistRequest.NameArtist);
-                        if (existingSchoolOfArt == null)
-                        {
-                            
-                            var newSchoolOfArt = new SchoolOfArt
-                            {
-                                Name = artistRequest.NameArtist,
-                                CreatedAt = DateTime.Now,
-                                UpdatedAt = DateTime.Now
-                            };
-                            _context.SchoolOfArt.Add(newSchoolOfArt);
-                            await _context.SaveChangesAsync();
-
-                            existingSchoolOfArt = newSchoolOfArt; 
-                        }
-
-                        // Tạo liên kết ArtistSchoolOfArt
-                        var artistSchoolOfArt = new ArtistSchoolOfArt
+                        var ArtistSchoolofart = new ArtistSchoolOfArt
                         {
                             ArtistId = newArtist.Id,
-                            SchoolOfArtId = existingSchoolOfArt.Id
+                            SchoolOfArtId = newArtist.Id
                         };
-                        _context.ArtistSchoolOfArt.Add(artistSchoolOfArt);
+                        _context.ArtistSchoolOfArt.Add(ArtistSchoolofart);
                         await _context.SaveChangesAsync();
 
                         //Gửi email thông báo chấp nhận yêu cầu
@@ -211,6 +194,8 @@ namespace ArtGallery.Controllers
         }
 
 
+
+
         [HttpGet("getall-request-artist")]
         public async Task<IActionResult> GetAllArtistRequests()
         {
@@ -228,13 +213,13 @@ namespace ArtGallery.Controllers
                     Id = request.Id,
                     UserId = request.UserId,
                     UserName = request.UserName,
-                    NameArtist = request.NameArtist,  
+                    NameArtist = request.NameArtist,
                     Status = request.StatusRequest,
                     SchoolOfArt = request.SchoolOfArt,
                     Image = request.Image,
                     Biography = request.Biography,
                     createdAt = request.CreatedAt,
-                    
+
                 }).ToList();
                 // Trả về danh sách các yêu cầu dưới dạng kết quả
                 return Ok(result);
@@ -275,7 +260,7 @@ namespace ArtGallery.Controllers
                     NameArtist = artistRequest.NameArtist,
                     Status = artistRequest.StatusRequest,
                     Image = artistRequest.Image,
-                    SchoolOfArt= artistRequest.SchoolOfArt,
+                    SchoolOfArt = artistRequest.SchoolOfArt,
                     Biography = artistRequest.Biography,
                     createdAt = artistRequest.CreatedAt,
                 };

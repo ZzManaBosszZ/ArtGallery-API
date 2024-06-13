@@ -192,7 +192,7 @@ namespace ArtGallery.Controllers
         //}
 
         [HttpGet]
-        public async Task<IActionResult> GetArtistAll([FromQuery] string search = null,[FromQuery] List<int> artWorkIds = null,[FromQuery] List<int> schoolOfArtsIds = null)
+        public async Task<IActionResult> GetArtistAll([FromQuery] string search = null, [FromQuery] List<int> artWorkIds = null, [FromQuery] List<int> schoolOfArtsIds = null)
         {
             try
             {
@@ -229,14 +229,14 @@ namespace ArtGallery.Controllers
                         Id = a.Id,
                         Name = a.Name,
                         Biography = a.Biography,
-                        ArtistImages = a.Image,
-                        Description = a.Description,    
+                        Image = a.Image,
+                        Description = a.Description,
                         createdAt = a.CreatedAt,
                         updatedAt = a.UpdatedAt,
                         deletedAt = a.DeletedAt,
                     };
 
-                    
+
                     var artWorks = new List<ArtWorkResponse>();
                     var schoolOfArts = new List<SchoolOfArtResponse>();
                     foreach (var item in a.ArtistSchoolOfArts)
@@ -294,13 +294,15 @@ namespace ArtGallery.Controllers
 
 
 
-        [HttpGet("{id}")]    
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetArtistById(int id)
         {
             try
             {
                 Artist a = await _context.Artist
                     .Include(a => a.ArtistArtWorks).ThenInclude(a => a.ArtWork)
+                    .ThenInclude(aw => aw.OfferArtWork).ThenInclude(oaw => oaw.Offer)
+                     .ThenInclude(o => o.User)
                     .Include(m => m.ArtistSchoolOfArts).ThenInclude(m => m.SchoolOfArt)
                     .FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
 
@@ -311,19 +313,16 @@ namespace ArtGallery.Controllers
                         Id = a.Id,
                         Name = a.Name,
                         Biography = a.Biography,
-                        ArtistImages = a.Image,
+                        Image = a.Image,
                         Description = a.Description,
                         createdAt = a.CreatedAt,
                         updatedAt = a.UpdatedAt,
                         deletedAt = a.DeletedAt,
                     };
 
-                   
                     var artWorks = new List<ArtWorkResponse>();
                     var schoolOfArts = new List<SchoolOfArtResponse>();
-                    
-                    
-                    artistDto.SchoolOfArts = schoolOfArts;
+
                     foreach (var item in a.ArtistSchoolOfArts)
                     {
                         var schoolOfArt = new SchoolOfArtResponse
@@ -339,7 +338,7 @@ namespace ArtGallery.Controllers
                     {
                         var artWork = new ArtWorkResponse
                         {
-                            Id = item.Id,
+                            Id = item.ArtWork.Id,
                             Name = item.ArtWork.Name,
                             ArtWorkImage = item.ArtWork.ArtWorkImage,
                             Medium = item.ArtWork.Medium,
@@ -353,11 +352,24 @@ namespace ArtGallery.Controllers
                             Series = item.ArtWork.Series,
                             Price = item.ArtWork.Price,
                             FavoriteCount = item.ArtWork.FavoriteCount,
+                            Offers = item.ArtWork.OfferArtWork
+                                .Where(oaw => oaw.Offer.IsPaid == 1)
+                                .Select(oaw => new OfferResponse
+                                {
+                                    Id = oaw.Offer.Id,
+                                    OfferPrice = oaw.Offer.OfferPrice,
+                                    offercode = oaw.Offer.OfferCode,
+                                    ToTal = oaw.Offer.Total,
+                                    UserName = oaw.Offer.User.Fullname,
+                                    isPaid = oaw.Offer.IsPaid,
 
+                                })
+                                .ToList()
                         };
                         artWorks.Add(artWork);
                     }
                     artistDto.ArtWork = artWorks;
+
                     return Ok(artistDto);
                 }
 
@@ -475,14 +487,12 @@ namespace ArtGallery.Controllers
 
                         _context.ArtistSchoolOfArt.Add(artistSchoolOfArts);
                     }
-
-                    await _context.SaveChangesAsync();
                     // Trả về thông báo thành công
                     return Created($"get-by-id?id={a.Id}", new ArtistDTO
                     {
                         Id = a.Id,
                         Name = a.Name,
-                        ArtistImages = a.Image,
+                        Image = a.Image,
                         Biography = a.Biography,
                         createdAt = a.CreatedAt,
                         updatedAt = a.UpdatedAt,
@@ -596,7 +606,7 @@ namespace ArtGallery.Controllers
             }
         }
 
-      
+
         [HttpDelete("delete")]
         [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> DeleteArtist(List<int> ids)

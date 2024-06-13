@@ -31,6 +31,157 @@ namespace ArtGallery.Controllers
             _emailService = emailService;
         }
 
+        [HttpGet("GetOfferAllArtist")]
+        [Authorize]
+        public async Task<IActionResult> GetOrderAllArtist()
+        {
+            try
+            {
+                // Lấy userId của người dùng đăng nhập
+                var userIdentity = HttpContext.User.Identity as ClaimsIdentity;
+                var userIdClaim = userIdentity.FindFirst(ClaimTypes.NameIdentifier);
+
+                if (userIdClaim == null)
+                {
+                    return Unauthorized(new { message = "Not Authorized" });
+                }
+
+                int userId = Convert.ToInt32(userIdClaim.Value);
+
+                // Lấy danh sách nghệ sĩ mà người dùng đăng nhập đã liên kết
+                var userArtists = await _context.UserArtist
+                    .Where(ua => ua.UserId == userId)
+                    .Select(ua => ua.ArtistId)
+                    .ToListAsync();
+
+                // Lấy danh sách các tác phẩm của các nghệ sĩ mà người dùng đăng nhập đã liên kết
+                var artistArtWorkIds = await _context.ArtistArtWork
+                    .Where(aaw => userArtists.Contains(aaw.ArtistId))
+                    .Select(aaw => aaw.ArtWorkId)
+                    .ToListAsync();
+
+                // Lấy tất cả các đề xuất từ cơ sở dữ liệu cho các tác phẩm được liên kết với nghệ sĩ
+                List<Offer> offers = await _context.Offer
+                    .Include(o => o.User) // Nạp thông tin người dùng
+                    .Include(o => o.OfferArtWorks).ThenInclude(o => o.ArtWork)
+                    .Where(o => artistArtWorkIds.Contains(o.ArtWorkId))
+                    .OrderByDescending(p => p.Id)
+                    .ToListAsync();
+                List<OfferDTO> result = new List<OfferDTO>();
+                // Chuyển đổi danh sách các đề xuất thành đối tượng DTO để hiển thị
+                foreach (var offer in offers)
+                {
+                    result.Add(new OfferDTO
+                    {
+                        Id = offer.Id,
+                        UserId = offer.UserId,
+                        UserName = offer.User.Fullname,
+                        OfferPrice = offer.OfferPrice,
+                        ArtWorkId = offer.ArtWorkId,
+                        OfferCode = offer.OfferCode,
+                        ToTal = offer.Total,
+                        ArtWorkNames = offer.OfferArtWorks.Select(oaw => oaw.ArtWork.Name).ToList(),
+                        ArtWorkImages = offer.OfferArtWorks.Select(oaw => oaw.ArtWork.ArtWorkImage).ToList(),
+                        IsPaid = offer.IsPaid,
+                        Status = offer.Status,
+                        createdAt = offer.CreatedAt,
+                        updatedAt = offer.UpdatedAt,
+                        deletedAt = offer.DeletedAt
+                    });
+                }
+                // Trả về danh sách các đề xuất dưới dạng kết quả
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                // Xử lý ngoại lệ nếu có lỗi xảy ra
+                var response = new GeneralService
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    Message = ex.Message,
+                    Data = ""
+                };
+
+                return BadRequest(response);
+            }
+        }
+        [HttpGet("get-by-id-artist/{code_order}")]
+        [Authorize(Roles = "Super Admin, Artist")]
+        public async Task<IActionResult> GetOrderDetailArtist(string code_order)
+        {
+            try
+            {
+                // Lấy userId của người dùng đăng nhập
+                var userIdentity = HttpContext.User.Identity as ClaimsIdentity;
+                var userIdClaim = userIdentity.FindFirst(ClaimTypes.NameIdentifier);
+
+                if (userIdClaim == null)
+                {
+                    return Unauthorized(new { message = "Not Authorized" });
+                }
+
+                int userId = Convert.ToInt32(userIdClaim.Value);
+
+                // Lấy danh sách nghệ sĩ mà người dùng đăng nhập đã liên kết
+                var userArtists = await _context.UserArtist
+                    .Where(ua => ua.UserId == userId)
+                    .Select(ua => ua.ArtistId)
+                    .ToListAsync();
+
+                // Lấy danh sách các tác phẩm của các nghệ sĩ mà người dùng đăng nhập đã liên kết
+                var artistArtWorkIds = await _context.ArtistArtWork
+                    .Where(aaw => userArtists.Contains(aaw.ArtistId))
+                    .Select(aaw => aaw.ArtWorkId)
+                    .ToListAsync();
+
+                // Lấy thông tin đề xuất từ mã đề xuất (offer code) và kiểm tra xem có liên kết với các tác phẩm của nghệ sĩ không
+                Offer offer = await _context.Offer
+                    .Include(o => o.User) // Nạp thông tin người dùng
+                    .Include(o => o.OfferArtWorks).ThenInclude(o => o.ArtWork)
+                    .FirstOrDefaultAsync(x => x.OfferCode.Equals(code_order) && artistArtWorkIds.Contains(x.ArtWorkId) && x.DeletedAt == null);
+
+                if (offer != null)
+                {
+                    OfferDTO result = new OfferDTO
+                    {
+                        Id = offer.Id,
+                        UserId = offer.UserId,
+                        UserName = offer.User.Fullname,
+                        OfferPrice = offer.OfferPrice,
+                        ArtWorkId = offer.ArtWorkId,
+                        OfferCode = offer.OfferCode,
+                        ToTal = offer.Total,
+                        ArtWorkNames = offer.OfferArtWorks.Select(oaw => oaw.ArtWork.Name).ToList(),
+                        ArtWorkImages = offer.OfferArtWorks.Select(oaw => oaw.ArtWork.ArtWorkImage).ToList(),
+                        Address = offer.Address,
+                        Status = offer.Status,
+                        IsPaid = offer.IsPaid,
+                        createdAt = offer.CreatedAt,
+                        updatedAt = offer.UpdatedAt,
+                        deletedAt = offer.DeletedAt
+                    };
+                    return Ok(result);
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+            catch (Exception ex)
+            {
+                // Xử lý ngoại lệ nếu có lỗi xảy ra
+                var response = new GeneralService
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    Message = ex.Message,
+                    Data = ""
+                };
+
+                return BadRequest(response);
+            }
+        }
 
         [HttpGet("GetOrderAllAdmin")]
         [Authorize(Roles = "Super Admin, Artist")]
@@ -136,7 +287,7 @@ namespace ArtGallery.Controllers
 
 
         [HttpGet("get-by-user")]
-        [Authorize(Roles = "User")]
+        [Authorize]
         public async Task<IActionResult> GetOfferByUser()
         {
             var identity = HttpContext.User.Identity as ClaimsIdentity;
@@ -434,7 +585,7 @@ namespace ArtGallery.Controllers
         }
 
         [HttpPut("update-status-Admin/{offerCode}")]
-        //[Authorize/*(Roles = "Super Admin, Artist")*/]
+        [Authorize(Roles = "Super Admin, Artist, User")]
         public async Task<IActionResult> UpdateOfferStatus(string offerCode, [FromForm] UpdateStatusRequest request)
         {
             // Tìm đề xuất với OfferCode tương ứng
@@ -541,252 +692,167 @@ namespace ArtGallery.Controllers
             return NoContent();
         }
 
-        //public async Task<IActionResult> UpdateOfferStatus(string offerCode, [FromForm] UpdateStatusRequest request)
-        //{
-        //    // Tìm đề xuất với OfferCode tương ứng
-        //    var offer = await _context.Offer
-        //        .Include(o => o.User)
-        //        .FirstOrDefaultAsync(o => o.OfferCode == offerCode);
-        //    if (offer == null)
-        //    {
-        //        return NotFound("Offer not found");
-        //    }
-
-        //    // Kiểm tra hành động cần thực hiện
-        //    switch (request.Action)
-        //    {
-        //        case "accept":
-        //            offer.Status = 1; 
-        //            var userRole = offer.User.Role;
-        //            if (userRole == "Artist")
-        //            {
-        //                var adminShare = offer.Total * 0.1m;
-        //                offer.AdminShare = adminShare;
-        //                var adminEmail = "admin@example.com";
-        //                await _emailService.SendEmailAsync(new Mailrequest
-        //                {
-        //                    ToEmail = adminEmail,
-        //                    Subject = "Artwork Sold",
-        //                    Body = $"An artwork has been sold for {offer.Total:C}. Admin share is {adminShare:C}."
-        //                });
-        //            }
-        //            string paymentLink = $"http://localhost:5000/payment/{offerCode}";
-        //            await _emailService.SendEmailAsync(new Mailrequest
-        //            {
-        //                ToEmail = offer.User.Email,
-        //                Subject = "Offer Accepted",
-        //                Body = $"Your offer with Code {offerCode} has been accepted. You can complete the payment process by clicking <a href='{paymentLink}'>here</a>."
-        //            });
-        //            var relatedOffers = await _context.Offer
-        //                .Where(o => o.ArtWorkId == offer.ArtWorkId && o.Id != offer.Id)
-        //                .ToListAsync();
-        //            foreach (var relatedOffer in relatedOffers)
-        //            {
-        //                relatedOffer.Status = -1; 
-        //                await _emailService.SendEmailAsync(new Mailrequest
-        //                {
-        //                    ToEmail = relatedOffer.User.Email,
-        //                    Subject = "Offer Rejected",
-        //                    Body = $"Your offer with Code {relatedOffer.OfferCode} has been rejected."
-        //                });
-        //            }
-        //            break;
-        //        case "reject":
-        //            offer.Status = -1;
-        //            await _emailService.SendEmailAsync(new Mailrequest
-        //            {
-        //                ToEmail = offer.User.Email,
-        //                Subject = "Offer Cancelled",
-        //                Body = $"Your offer with Code {offerCode} has been cancelled."
-        //            });
-        //            break;
-        //        case "isPaid":
-        //            offer.IsPaid = 1;
-        //            await _emailService.SendEmailAsync(new Mailrequest
-        //            {
-        //                ToEmail = offer.User.Email,
-        //                Subject = "Payment Success",
-        //                Body = $"Your offer with Code {offerCode} has been paid."
-        //            });
-        //            break;
-        //        default:
-        //            return BadRequest("Invalid action");
-        //    }
-        //    _context.Entry(offer).State = EntityState.Modified;
-        //    try
-        //    {
-        //        await _context.SaveChangesAsync();
-        //    }
-        //    catch (DbUpdateConcurrencyException)
-        //    {
-        //        if (!OfferExists(offer.Id))
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            throw;
-        //        }
-        //    }
-        //    return NoContent();
-        //}
-
-        [HttpGet("GetOfferAllArtist")]
-        [Authorize]
-        public async Task<IActionResult> GetOrderAllArtist()
-        {
-            try
-            {
-                // Lấy userId của người dùng đăng nhập
-                var userIdentity = HttpContext.User.Identity as ClaimsIdentity;
-                var userIdClaim = userIdentity.FindFirst(ClaimTypes.NameIdentifier);
-
-                if (userIdClaim == null)
-                {
-                    return Unauthorized(new { message = "Not Authorized" });
-                }
-
-                int userId = Convert.ToInt32(userIdClaim.Value);
-
-                // Lấy danh sách nghệ sĩ mà người dùng đăng nhập đã liên kết
-                var userArtists = await _context.UserArtist
-                    .Where(ua => ua.UserId == userId)
-                    .Select(ua => ua.ArtistId)
-                    .ToListAsync();
-
-                // Lấy danh sách các tác phẩm của các nghệ sĩ mà người dùng đăng nhập đã liên kết
-                var artistArtWorkIds = await _context.ArtistArtWork
-                    .Where(aaw => userArtists.Contains(aaw.ArtistId))
-                    .Select(aaw => aaw.ArtWorkId)
-                    .ToListAsync();
-
-                // Lấy tất cả các đề xuất từ cơ sở dữ liệu cho các tác phẩm được liên kết với nghệ sĩ
-                List<Offer> offers = await _context.Offer
-                    .Include(o => o.User) // Nạp thông tin người dùng
-                    .Include(o => o.OfferArtWorks).ThenInclude(o => o.ArtWork)
-                    .Where(o => artistArtWorkIds.Contains(o.ArtWorkId))
-                    .OrderByDescending(p => p.Id)
-                    .ToListAsync();
-                List<OfferDTO> result = new List<OfferDTO>();
-                // Chuyển đổi danh sách các đề xuất thành đối tượng DTO để hiển thị
-                foreach (var offer in offers)
-                {
-                    result.Add(new OfferDTO
-                    {
-                        Id = offer.Id,
-                        UserId = offer.UserId,
-                        UserName = offer.User.Fullname,
-                        OfferPrice = offer.OfferPrice,
-                        ArtWorkId = offer.ArtWorkId,
-                        OfferCode = offer.OfferCode,
-                        ToTal = offer.Total,
-                        ArtWorkNames = offer.OfferArtWorks.Select(oaw => oaw.ArtWork.Name).ToList(),
-                        ArtWorkImages = offer.OfferArtWorks.Select(oaw => oaw.ArtWork.ArtWorkImage).ToList(),
-                        IsPaid = offer.IsPaid,
-                        Status = offer.Status,
-                        createdAt = offer.CreatedAt,
-                        updatedAt = offer.UpdatedAt,
-                        deletedAt = offer.DeletedAt
-                    });
-                }
-                // Trả về danh sách các đề xuất dưới dạng kết quả
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                // Xử lý ngoại lệ nếu có lỗi xảy ra
-                var response = new GeneralService
-                {
-                    Success = false,
-                    StatusCode = 400,
-                    Message = ex.Message,
-                    Data = ""
-                };
-
-                return BadRequest(response);
-            }
-        }
-        [HttpGet("GetOfferDetailArtist/{code_order}")]
-        
-        [Authorize]
-        public async Task<IActionResult> GetOrderDetailArtist(string code_order)
-        {
-            try
-            {
-                // Lấy userId của người dùng đăng nhập
-                var userIdentity = HttpContext.User.Identity as ClaimsIdentity;
-                var userIdClaim = userIdentity.FindFirst(ClaimTypes.NameIdentifier);
-
-                if (userIdClaim == null)
-                {
-                    return Unauthorized(new { message = "Not Authorized" });
-                }
-
-                int userId = Convert.ToInt32(userIdClaim.Value);
-
-                // Lấy danh sách nghệ sĩ mà người dùng đăng nhập đã liên kết
-                var userArtists = await _context.UserArtist
-                    .Where(ua => ua.UserId == userId)
-                    .Select(ua => ua.ArtistId)
-                    .ToListAsync();
-
-                // Lấy danh sách các tác phẩm của các nghệ sĩ mà người dùng đăng nhập đã liên kết
-                var artistArtWorkIds = await _context.ArtistArtWork
-                    .Where(aaw => userArtists.Contains(aaw.ArtistId))
-                    .Select(aaw => aaw.ArtWorkId)
-                    .ToListAsync();
-
-                // Lấy thông tin đề xuất từ mã đề xuất (offer code) và kiểm tra xem có liên kết với các tác phẩm của nghệ sĩ không
-                Offer offer = await _context.Offer
-                    .Include(o => o.User) // Nạp thông tin người dùng
-                    .Include(o => o.OfferArtWorks).ThenInclude(o => o.ArtWork)
-                    .FirstOrDefaultAsync(x => x.OfferCode.Equals(code_order) && artistArtWorkIds.Contains(x.ArtWorkId) && x.DeletedAt == null);
-
-                if (offer != null)
-                {
-                    OfferDTO result = new OfferDTO
-                    {
-                        Id = offer.Id,
-                        UserId = offer.UserId,
-                        UserName = offer.User.Fullname,
-                        OfferPrice = offer.OfferPrice,
-                        ArtWorkId = offer.ArtWorkId,
-                        OfferCode = offer.OfferCode,
-                        ToTal = offer.Total,
-                        ArtWorkNames = offer.OfferArtWorks.Select(oaw => oaw.ArtWork.Name).ToList(),
-                        ArtWorkImages = offer.OfferArtWorks.Select(oaw => oaw.ArtWork.ArtWorkImage).ToList(),
-                        Address = offer.Address,
-                        Status = offer.Status,
-                        IsPaid = offer.IsPaid,
-                        createdAt = offer.CreatedAt,
-                        updatedAt = offer.UpdatedAt,
-                        deletedAt = offer.DeletedAt
-                    };
-                    return Ok(result);
-                }
-                else
-                {
-                    return NotFound();
-                }
-            }
-            catch (Exception ex)
-            {
-                // Xử lý ngoại lệ nếu có lỗi xảy ra
-                var response = new GeneralService
-                {
-                    Success = false,
-                    StatusCode = 400,
-                    Message = ex.Message,
-                    Data = ""
-                };
-
-                return BadRequest(response);
-            }
-        }
-
         private bool OfferExists(int id)
         {
             return _context.Offer.Any(e => e.Id == id);
         }
+
+
+
+
+        //[HttpGet("GetOfferAllArtist")]
+        //[Authorize]
+        //public async Task<IActionResult> GetOfferAllArtist()
+        //{
+        //    try
+        //    {
+        //        // Lấy userId của người dùng đăng nhập
+        //        var userIdentity = HttpContext.User.Identity as ClaimsIdentity;
+        //        var userIdClaim = userIdentity.FindFirst(ClaimTypes.NameIdentifier);
+
+        //        if (userIdClaim == null)
+        //        {
+        //            return Unauthorized(new { message = "Not Authorized" });
+        //        }
+
+        //        int userId = Convert.ToInt32(userIdClaim.Value);
+
+        //        // Lấy danh sách nghệ sĩ mà người dùng đăng nhập đã liên kết
+        //        var userArtists = await _context.UserArtist
+        //            .Where(ua => ua.UserId == userId)
+        //            .Select(ua => ua.ArtistId)
+        //            .ToListAsync();
+
+        //        // Lấy danh sách các tác phẩm của các nghệ sĩ mà người dùng đăng nhập đã liên kết
+        //        var artistArtWorkIds = await _context.ArtistArtWork
+        //            .Where(aaw => userArtists.Contains(aaw.ArtistId))
+        //            .Select(aaw => aaw.ArtWorkId)
+        //            .ToListAsync();
+
+        //        // Lấy tất cả các đề xuất từ cơ sở dữ liệu cho các tác phẩm được liên kết với nghệ sĩ
+        //        List<Offer> offers = await _context.Offer
+        //            .Include(o => o.User) // Nạp thông tin người dùng
+        //            .Include(o => o.OfferArtWorks).ThenInclude(o => o.ArtWork)
+        //            .Where(o => artistArtWorkIds.Contains(o.ArtWorkId))
+        //            .OrderByDescending(p => p.Id)
+        //            .ToListAsync();
+        //        List<OfferDTO> result = new List<OfferDTO>();
+        //        // Chuyển đổi danh sách các đề xuất thành đối tượng DTO để hiển thị
+        //        foreach (var offer in offers)
+        //        {
+        //            result.Add(new OfferDTO
+        //            {
+        //                Id = offer.Id,
+        //                UserId = offer.UserId,
+        //                UserName = offer.User.Fullname,
+        //                OfferPrice = offer.OfferPrice,
+        //                ArtWorkId = offer.ArtWorkId,
+        //                OfferCode = offer.OfferCode,
+        //                ToTal = offer.Total,
+        //                ArtWorkNames = offer.OfferArtWorks.Select(oaw => oaw.ArtWork.Name).ToList(),
+        //                ArtWorkImages = offer.OfferArtWorks.Select(oaw => oaw.ArtWork.ArtWorkImage).ToList(),
+        //                IsPaid = offer.IsPaid,
+        //                Status = offer.Status,
+        //                createdAt = offer.CreatedAt,
+        //                updatedAt = offer.UpdatedAt,
+        //                deletedAt = offer.DeletedAt
+        //            });
+        //        }
+        //        // Trả về danh sách các đề xuất dưới dạng kết quả
+        //        return Ok(result);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // Xử lý ngoại lệ nếu có lỗi xảy ra
+        //        var response = new GeneralService
+        //        {
+        //            Success = false,
+        //            StatusCode = 400,
+        //            Message = ex.Message,
+        //            Data = ""
+        //        };
+
+        //        return BadRequest(response);
+        //    }
+        //}
+
+        //[HttpGet("GetOfferDetailArtist/{code_order}")]
+
+        //[Authorize]
+        //public async Task<IActionResult> GetOfferDetailArtist(string code_order)
+        //{
+        //    try
+        //    {
+        //        // Lấy userId của người dùng đăng nhập
+        //        var userIdentity = HttpContext.User.Identity as ClaimsIdentity;
+        //        var userIdClaim = userIdentity.FindFirst(ClaimTypes.NameIdentifier);
+
+        //        if (userIdClaim == null)
+        //        {
+        //            return Unauthorized(new { message = "Not Authorized" });
+        //        }
+
+        //        int userId = Convert.ToInt32(userIdClaim.Value);
+
+        //        // Lấy danh sách nghệ sĩ mà người dùng đăng nhập đã liên kết
+        //        var userArtists = await _context.UserArtist
+        //            .Where(ua => ua.UserId == userId)
+        //            .Select(ua => ua.ArtistId)
+        //            .ToListAsync();
+
+        //        // Lấy danh sách các tác phẩm của các nghệ sĩ mà người dùng đăng nhập đã liên kết
+        //        var artistArtWorkIds = await _context.ArtistArtWork
+        //            .Where(aaw => userArtists.Contains(aaw.ArtistId))
+        //            .Select(aaw => aaw.ArtWorkId)
+        //            .ToListAsync();
+
+        //        // Lấy thông tin đề xuất từ mã đề xuất (offer code) và kiểm tra xem có liên kết với các tác phẩm của nghệ sĩ không
+        //        Offer offer = await _context.Offer
+        //            .Include(o => o.User) // Nạp thông tin người dùng
+        //            .Include(o => o.OfferArtWorks).ThenInclude(o => o.ArtWork)
+        //            .FirstOrDefaultAsync(x => x.OfferCode.Equals(code_order) && artistArtWorkIds.Contains(x.ArtWorkId) && x.DeletedAt == null);
+
+        //        if (offer != null)
+        //        {
+        //            OfferDTO result = new OfferDTO
+        //            {
+        //                Id = offer.Id,
+        //                UserId = offer.UserId,
+        //                UserName = offer.User.Fullname,
+        //                OfferPrice = offer.OfferPrice,
+        //                ArtWorkId = offer.ArtWorkId,
+        //                OfferCode = offer.OfferCode,
+        //                ToTal = offer.Total,
+        //                ArtWorkNames = offer.OfferArtWorks.Select(oaw => oaw.ArtWork.Name).ToList(),
+        //                ArtWorkImages = offer.OfferArtWorks.Select(oaw => oaw.ArtWork.ArtWorkImage).ToList(),
+        //                Address = offer.Address,
+        //                Status = offer.Status,
+        //                IsPaid = offer.IsPaid,
+        //                createdAt = offer.CreatedAt,
+        //                updatedAt = offer.UpdatedAt,
+        //                deletedAt = offer.DeletedAt
+        //            };
+        //            return Ok(result);
+        //        }
+        //        else
+        //        {
+        //            return NotFound();
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // Xử lý ngoại lệ nếu có lỗi xảy ra
+        //        var response = new GeneralService
+        //        {
+        //            Success = false,
+        //            StatusCode = 400,
+        //            Message = ex.Message,
+        //            Data = ""
+        //        };
+
+        //        return BadRequest(response);
+        //    }
+        //}
+
     }
 }

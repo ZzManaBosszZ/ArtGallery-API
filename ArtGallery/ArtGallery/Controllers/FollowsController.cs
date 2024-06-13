@@ -27,71 +27,6 @@ namespace ArtGallery.Controllers
         }
         [HttpGet("get-by-user-follow")]
         //[Authorize]
-        //public async Task<IActionResult> GetByUser()
-        //{
-        //    var identity = HttpContext.User.Identity as ClaimsIdentity;
-
-        //    if (!identity.IsAuthenticated)
-        //    {
-        //        return Unauthorized(new GeneralService
-        //        {
-        //            Success = false,
-        //            StatusCode = 401,
-        //            Message = "Not Authorized",
-        //            Data = ""
-        //        });
-        //    }
-        //    try
-        //    {
-        //        var userClaims = identity.Claims;
-        //        var userId = userClaims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-
-        //        var user = await _context.Users
-        //            .FirstOrDefaultAsync(u => u.Id == Convert.ToInt32(userId));
-
-        //        if (user == null)
-        //        {
-        //            return Unauthorized(new GeneralService
-        //            {
-        //                Success = false,
-        //                StatusCode = 401,
-        //                Message = "Not Authorized",
-        //                Data = ""
-        //            });
-        //        }
-
-        //        List<Follow> follows = await _context.Follow.Include(f => f.Artist).Where(f => f.UserId == user.Id).OrderByDescending(p => p.Id).ToListAsync();
-        //        List<FollowDTO> result = new List<FollowDTO>();
-        //        foreach (var item in follows)
-        //        {
-        //            result.Add(new FollowDTO
-        //            {
-        //                Id = item.Id,
-        //                ArtistImage = item.Artist.Image,
-        //                ArtistName = item.Artist.Name,
-        //                ArtistId = item.Artist.Id,
-        //                UserId = item.UserId,
-        //                createdAt = item.CreatedAt,
-        //                updatedAt = item.UpdatedAt,
-        //                deletedAt = item.DeletedAt,
-        //            });
-        //        }
-        //        return Ok(result);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        var response = new GeneralService
-        //        {
-        //            Success = false,
-        //            StatusCode = 400,
-        //            Message = ex.Message,
-        //            Data = ""
-        //        };
-
-        //        return BadRequest(response);
-        //    }
-        //}
-
         public async Task<IActionResult> GetByUser()
         {
             var identity = HttpContext.User.Identity as ClaimsIdentity;
@@ -183,6 +118,7 @@ namespace ArtGallery.Controllers
                 return BadRequest(response);
             }
         }
+
 
 
         [HttpPost("addtofollow")]

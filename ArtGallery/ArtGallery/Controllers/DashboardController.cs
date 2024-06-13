@@ -25,7 +25,7 @@ namespace ArtGallery.Controllers
 
         // Endpoint để lấy tổng số lượng offer
         [HttpGet("total-count-offer")]
-        [Authorize(Roles = "Super Admin, Artist")]
+        [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> GetTotalOfferCount()
         {
             try
@@ -76,7 +76,7 @@ namespace ArtGallery.Controllers
         }
 
         [HttpGet("total-count-artwork")]
-        [Authorize(Roles = "Super Admin, Artist")]
+        [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> GetTotalArtworkCount()
         {
             try
@@ -95,7 +95,7 @@ namespace ArtGallery.Controllers
         }   
 
         [HttpGet("revenue/yearly")]
-        [Authorize(Roles = "Super Admin, Artist")]
+        [Authorize(Roles = "Super Admin")]
         public IActionResult GetYearlySales()
         {
             int currentYear = DateTime.UtcNow.Year;
@@ -117,7 +117,7 @@ namespace ArtGallery.Controllers
         }
 
         [HttpGet("revenue/monthly/{year}")]
-        [Authorize(Roles = "Super Admin, Artist")]
+        [Authorize(Roles = "Super Admin")]
         public IActionResult GetMonthlySales(int year)
         {
             // Validate the input year
@@ -154,7 +154,7 @@ namespace ArtGallery.Controllers
         }
 
         [HttpGet("revenue/weekly")]
-        [Authorize(Roles = "Super Admin, Artist")]
+        [Authorize(Roles = "Super Admin")]
         public IActionResult GetWeeklySales()
         {
             DateTime today = DateTime.UtcNow.Date;
@@ -162,7 +162,7 @@ namespace ArtGallery.Controllers
                 .Select(offset => today.AddDays(-offset))
                 .ToList();
             var past7DaysSales = past7Days
-        .GroupJoin(_context.Offer.Where(o => o.IsPaid == 1), 
+        .GroupJoin(_context.Offer.Where(o => o.IsPaid == 1),
             date => date.Date,
             order => order.CreatedAt.Value.Date,
             (date, orders) => new
@@ -183,7 +183,7 @@ namespace ArtGallery.Controllers
 
 
         [HttpGet("total-revenue")]
-        [Authorize(Roles = "Super Admin, Artist")]
+        [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> GetTotalRevenue()
         {
             try
@@ -203,7 +203,7 @@ namespace ArtGallery.Controllers
 
         // GET: api/Offer/TotalOfferToday
         [HttpGet("total-offer-today")]
-        [Authorize(Roles = "Super Admin, Artist")]
+        [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> GetTotalOfferToday()
         {
             try
@@ -222,7 +222,7 @@ namespace ArtGallery.Controllers
         }
 
         [HttpGet("list-offer-today")]
-        [Authorize(Roles = "Super Admin, Artist")]
+        [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> GetListOfferToDay()
         {
             try
@@ -247,7 +247,7 @@ namespace ArtGallery.Controllers
                         createdAt = offer.CreatedAt,
                         updatedAt = offer.UpdatedAt,
                         deletedAt = offer.DeletedAt,
-                    }) ;
+                    });
                 }
 
                 return Ok(result);
@@ -760,5 +760,8 @@ namespace ArtGallery.Controllers
         }
 
 
+
+
+        
     }
 }
